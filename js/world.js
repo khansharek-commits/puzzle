@@ -1,9 +1,35 @@
-/* Lanterns of Lore — world data: maps, characters, monsters, story. */
+/* Lanterns of Lore — characters, monsters, story. */
 (function () {
   const LL = window.LL;
 
   /* ── Pixel sprites (drawn with an automatic dark outline). '.' = transparent. ── */
   LL.SPRITES = {
+    wizard: [
+      '............kk..........',
+      '...........kkkk.........',
+      '..........kkkkk.........',
+      '.........kkkkkk.........',
+      '........kkkkkkkk........',
+      '........kkkkkkkkk.......',
+      '.......kkkkkkkkkkk......',
+      '.......kkkkkkkkkkkk.....',
+      '......kkbbbbbbbbbbkk....',
+      '......kkbbyyyybbbbkk....',
+      '......kkbbyddybbbbkk....',
+      '......kkbbyyyybbbbkk....',
+      '..kkkkkkkkkkkkkkkkkkkkk.',
+      '.kkkkkkkkkkkkkkkkkkkkkkk',
+      '....wwwssssssssswww.....',
+      '...wwwsseessssseesww....',
+      '...wwwssppsssssppsww....',
+      '...wwwssssssnssssssww...',
+      '...wwwsssssssssssssww...',
+      '...wwwwsssmmmmsssswww...',
+      '..wwwwwwssssssssswwwww..',
+      '.aaawwwwwwwwwwwwwwwaaaa.',
+      'aaaaaaaawwwwwwwwaaaaaaaa',
+      'aaaaaaaaaaayyaaaaaaaaaaa'
+    ],
     person: [
       '...hhhh...',
       '..hhhhhh..',
@@ -153,18 +179,15 @@
       '...d....d...'
     ],
     lantern: [
-      '...aaaa...',
-      '..a....a..',
+      '....aa....',
+      '...a..a...',
+      '..aaaaaa..',
       '.aaaaaaaa.',
       '.a.cccc.a.',
       '.a.cccc.a.',
       '.a.cccc.a.',
       '.a.cccc.a.',
       '.aaaaaaaa.',
-      '...aaaa...',
-      '....aa....',
-      '....aa....',
-      '...aaaa...',
       '..aaaaaa..'
     ],
     chest: [
@@ -209,6 +232,7 @@
 
   const P = (o) => Object.assign({ o: '#140f14', e: '#f4efe0', p: '#140f14', s: '#e9c4a0' }, o);
   LL.PALETTES = {
+    wizard: { o: '#0c0a0e', k: '#22402f', b: '#3a2a1e', y: '#e0b34c', d: '#2a1a0a', w: '#ece8f4', s: '#e9b48a', e: '#ffffff', p: '#1a1420', n: '#c98a64', m: '#8a4a3a', a: '#8f9ad0' },
     marla: P({ h: '#a8432f', a: '#6d3b2a', b: '#e0b34c', d: '#3b2a24', f: '#24170f' }),
     villager1: P({ h: '#2b1d14', a: '#3d6b54', b: '#c9a24a', d: '#3a3048', f: '#24170f' }),
     villager2: P({ h: '#d8c27a', a: '#7a4d7a', b: '#e6d5a8', d: '#2f3a4a', f: '#24170f' }),
@@ -279,236 +303,29 @@
       defeat: 'The light… it is warm. I had forgotten.' }
   };
 
-  /* ── Maps ──
-   * Tile legend: '.' floor  ',' path/rug  '#' wall  'H' roof block  '~' water  '=' bridge
-   * 'T' tree  'b' barrel  'c' crate  'r' rock  'p' pillar  'x' crystal (light)  'l' lamp (light)
-   * 'k' bookshelf  't' table  'f' flowers
-   */
-  LL.MAPS = {
-    tavern: {
-      name: 'The Gilded Lantern', kind: 'image', image: 'tavern', w: 1024, h: 1024,
-      // walkable floor polygon (image pixels)
-      floor: [[60, 772], [150, 742], [250, 715], [330, 702], [480, 712], [600, 706], [652, 704], [690, 758], [820, 766], [905, 792], [965, 806], [900, 852], [760, 915], [640, 958], [560, 975], [470, 960], [330, 900], [200, 852], [95, 802]],
-      blocks: [
-        { x: 515, y: 862, rx: 150, ry: 62 },   // big table and chairs
-        { x: 577, y: 785, rx: 16, ry: 10 },    // lamp post
-        { x: 770, y: 822, rx: 34, ry: 20 },    // small round table
-        { x: 872, y: 760, rx: 52, ry: 22 },    // barrel
-        { x: 400, y: 942, rx: 30, ry: 16 },    // footstool
-        { x: 700, y: 752, rx: 18, ry: 12 }     // stand
-      ],
-      dark: 0, start: { x: 330, y: 790 },
-      npcs: [
-        { id: 'marla', name: 'Marla', x: 512, y: 600, talk: { x: 512, y: 718 }, r: 75, action: 'inn', portrait: 'marla' },
-        { id: 'hedda', name: 'Hedda', x: 265, y: 850, r: 60, riddle: 'chess', portrait: 'villager2',
-          lines: ['The Grove of Whys lies south. Its creatures argue in circles.', 'Spot the trick in an argument and it loses its power over you.'] },
-        { id: 'sable', name: 'Sable', x: 665, y: 772, r: 55, portrait: 'villager1', story: true },
-        { id: 'tobiah', name: 'Tobiah', x: 585, y: 880, talk: { x: 640, y: 940 }, r: 65, riddle: 'swallow', portrait: 'scholar',
-          lines: ['The Sunken Archive is east of the village. Mind the dust: it remembers more than you do.'] },
-        { id: 'bram', name: 'Bram', x: 105, y: 690, talk: { x: 130, y: 760 }, r: 70, portrait: 'villager3',
-          lines: ['First time in a scrap? Murk creatures fight with questions. A true answer is your sword.', 'Answer quickly and you strike twice as hard. A wrong answer, and they hit back.', 'Out of breath? Use Clarity to clear two wrong choices, or Mend to heal. Marla will patch you up for free.'] },
-        { id: 'lark', name: 'Lark', x: 952, y: 640, talk: { x: 925, y: 800 }, r: 80, riddle: 'carpet', portrait: 'child',
-          lines: ['West of the village is the Wayfarer Wilds. I wrote a song about every river in it!'] }
-      ],
-      exits: [{ x: 70, y: 776, r: 40, to: 'village', tx: 3, ty: 7, label: 'To Emberwick' }]
-    },
-
-    village: {
-      name: 'Emberwick', floor: 'grass', alt: 'cobble', wall: 'hedge', roof: 'slate', dark: 0.55, litBy: 'all',
-      tiles: [
-        'TTTTTTTT,,TTTTTTTT',
-        'T......f,,f..TT..T',
-        'T.HHHH..,,.......T',
-        'T.HHHH..,,..~~~..T',
-        'T.HHHH.l,,..~~~~.T',
-        'T.HHHH..,,...~~..T',
-        ',,,,,,,,,,,,,,,,,,',
-        'T...l...,,....l..T',
-        'T.f.....,,.......T',
-        'T...HHH.,,..r..f.T',
-        'T...HHH.,,.......T',
-        'T.T.....,,.....T.T',
-        'T.....f.,,.l.....T',
-        'TTTTTTTT,,TTTTTTTT'
-      ],
-      doors: [{ x: 3, y: 5 }],
-      exits: [
-        { tx: 3, ty: 6, to: 'tavern', label: 'The Gilded Lantern', door: true },
-        { tx: 8, ty: 0, to: 'observatory', spawn: [7, 11], label: 'Brass Observatory' },
-        { tx: 9, ty: 0, to: 'observatory', spawn: [7, 11], label: 'Brass Observatory' },
-        { tx: 17, ty: 6, to: 'archive', spawn: [7, 11], label: 'Sunken Archive' },
-        { tx: 0, ty: 6, to: 'wilds', spawn: [7, 10], label: 'Wayfarer Wilds' },
-        { tx: 8, ty: 13, to: 'grove', spawn: [7, 10], label: 'Grove of Whys' },
-        { tx: 9, ty: 13, to: 'grove', spawn: [7, 10], label: 'Grove of Whys' }
-      ],
-      npcs: [
-        { id: 'mira', name: 'Mira', tx: 6, ty: 8, pal: 'child', riddle: 'letters', lines: ['The lamps in the square are getting dimmer every night. Are you going to fix it?'] },
-        { id: 'hal', name: 'Warden Hal', tx: 10, ty: 2, pal: 'villager3', lines: ['North: the Brass Observatory. East: the Sunken Archive. West: the Wayfarer Wilds. South: the Grove of Whys.', 'Each one held a Great Lantern. Now each one holds a monster.'] },
-        { id: 'oma', name: 'Old Oma', tx: 14, ty: 2, pal: 'hermit', gateKeeper: true }
-      ],
-      gate: { tx: 16, ty: 1, to: 'spire', spawn: [7, 10] },
-      monsters: []
-    },
-
-    observatory: {
-      name: 'Brass Observatory', floor: 'stone', alt: 'brass', wall: 'stone', dark: 0.62, lantern: 'sci',
-      tiles: [
-        '###############',
-        '#x...p#.......#',
-        '#.....#.......#',
-        '#.k...#.......#',
-        '#.....#.......#',
-        '###.#####.#####',
-        '#.............#',
-        '#.x...t...t.x.#',
-        '#.............#',
-        '#..p.......p..#',
-        '#.............#',
-        '#x.....,.....x#',
-        '#######,#######'
-      ],
-      exits: [{ tx: 7, ty: 12, to: 'village', spawn: [8, 1], label: 'Emberwick' }],
-      seal: { tx: 9, ty: 5, puzzle: 'jugs', name: 'Alchemical Lock' },
-      boss: { tx: 10, ty: 3, enemy: 'entropy' },
-      lanternAt: { tx: 10, ty: 1 },
-      chests: [{ id: 'obs1', tx: 4, ty: 1 }],
-      npcs: [{ id: 'ilse', name: 'Astronomer Ilse', tx: 2, ty: 2, pal: 'scholar', riddle: 'folds', lines: ['The Engine beyond the lock feeds on disorder. Measure carefully to open the way.'] }],
-      monsters: [['emberWisp', 3, 8], ['quarkSlime', 11, 8], ['brassBeetle', 7, 9], ['quarkSlime', 4, 10]]
-    },
-
-    archive: {
-      name: 'Sunken Archive', floor: 'sand', alt: 'carpet', wall: 'sandstone', dark: 0.62, lantern: 'his',
-      tiles: [
-        '###############',
-        '#kkkk#.......k#',
-        '#....#.......k#',
-        '#.t..#........#',
-        '#....#p.....p.#',
-        '##.#####.######',
-        '#.....k.k.....#',
-        '#.p.........p.#',
-        '#.....l.l.....#',
-        '#.............#',
-        '#.p.........p.#',
-        '#......,......#',
-        '#######,#######'
-      ],
-      exits: [{ tx: 7, ty: 12, to: 'village', spawn: [16, 6], label: 'Emberwick' }],
-      seal: { tx: 8, ty: 5, puzzle: 'hanoi', name: 'Tower Seal' },
-      boss: { tx: 9, ty: 2, enemy: 'emperor' },
-      lanternAt: { tx: 9, ty: 1 },
-      chests: [{ id: 'arc1', tx: 1, ty: 4 }],
-      npcs: [{ id: 'oren', name: 'Archivist Oren', tx: 3, ty: 2, pal: 'scholar', riddle: 'portrait', lines: ['The seal is an old monks’ game: move the tower, one disk at a time, never big on small.'] }],
-      monsters: [['dustWraith', 3, 7], ['chronicleMoth', 11, 7], ['claySentinel', 7, 9], ['chronicleMoth', 5, 10]]
-    },
-
-    wilds: {
-      name: 'Wayfarer Wilds', floor: 'grass', alt: 'sand', wall: 'hedge', dark: 0.5, lantern: 'geo',
-      tiles: [
-        'TTTTTTTTTTTTTTT',
-        'T....r.......TT',
-        'T.f..........fT',
-        'T..r.........TT',
-        '~~~~~~~=~~~~~~~',
-        '~~~~~~~=~~~~~~~',
-        'T......,......T',
-        'T.T.........T.T',
-        'T.....f...r...T',
-        'T..l.......l..T',
-        'T.T....,....T.T',
-        'TTTTTTT,TTTTTTT'
-      ],
-      exits: [{ tx: 7, ty: 11, to: 'village', spawn: [1, 6], label: 'Emberwick' }],
-      seal: { tx: 7, ty: 6, puzzle: 'river', name: 'Ferry Post' },
-      boss: { tx: 9, ty: 2, enemy: 'leviathan' },
-      lanternAt: { tx: 8, ty: 1 },
-      chests: [{ id: 'wil1', tx: 12, ty: 8 }],
-      npcs: [{ id: 'ferrin', name: 'Ferrin', tx: 5, ty: 6, pal: 'villager1', riddle: 'bridge', lines: ['The bridge is out and only my little ferry crosses. Mind what you leave alone on the bank!'] }],
-      monsters: [['bogToad', 3, 8], ['compassCrab', 10, 7], ['galeMoth', 6, 9], ['compassCrab', 12, 9]]
-    },
-
-    grove: {
-      name: 'Grove of Whys', floor: 'moss', alt: 'stoneTile', wall: 'hedge', dark: 0.66, lantern: 'phi',
-      tiles: [
-        'TTTTTTTTTTTTTTT',
-        'TTx...p...p..xT',
-        'TT...........TT',
-        'T..p.......p..T',
-        'TTTTTTT.TTTTTTT',
-        'T.............T',
-        'T.x.r.....r.x.T',
-        'T.............T',
-        'T..p...f...p..T',
-        'T.............T',
-        'TT....,,,....TT',
-        'TTTTTTT,TTTTTTT'
-      ],
-      exits: [{ tx: 7, ty: 11, to: 'village', spawn: [8, 12], label: 'Emberwick' }],
-      seal: { tx: 7, ty: 4, puzzle: 'lights', name: 'Lantern Ring' },
-      boss: { tx: 7, ty: 2, enemy: 'sophist' },
-      lanternAt: { tx: 8, ty: 1 },
-      chests: [{ id: 'gro1', tx: 1, ty: 9 }],
-      npcs: [{ id: 'hermit', name: 'The Hermit', tx: 12, ty: 9, pal: 'hermit', riddle: 'looksay', lines: ['Why do you seek the Lantern? Good. Keep asking why. That is what this grove is for.'] }],
-      monsters: [['paradoxImp', 3, 7], ['echoOwl', 11, 7], ['doubtShade', 7, 8], ['paradoxImp', 5, 9]]
-    },
-
-    spire: {
-      name: 'Null’s Spire', floor: 'marble', alt: 'void', wall: 'obsidian', dark: 0.7,
-      tiles: [
-        '###############',
-        '#x...........x#',
-        '#.............#',
-        '#p....,,,....p#',
-        '#######.#######',
-        '#.............#',
-        '#x....p.p....x#',
-        '#######.#######',
-        '#.............#',
-        '#.p.........p.#',
-        '#......,......#',
-        '#######,#######'
-      ],
-      exits: [{ tx: 7, ty: 11, to: 'village', spawn: [15, 2], label: 'Emberwick' }],
-      seals: [{ id: 'spire2', tx: 7, ty: 7, puzzle: 'magic', name: 'Square of Fifteen' }, { id: 'spire1', tx: 7, ty: 4, puzzle: 'lock', name: 'Null’s Lock' }],
-      boss: { tx: 7, ty: 2, enemy: 'null' },
-      chests: [{ id: 'spi1', tx: 13, ty: 5 }],
-      npcs: [],
-      monsters: [['murkSlime', 3, 9], ['murkShade', 11, 9], ['murkSlime', 4, 5], ['murkShade', 10, 5]]
-    }
-  };
-
   /* ── Story ── speaker null = narration */
   LL.STORY = {
     intro: [
-      [null, 'Emberwick: a village where the lanterns never went out.'],
-      [null, 'Until tonight.'],
-      ['Marla', 'Wren! Thank the stars you’re awake. Something is very wrong.'],
-      ['Marla', 'The four Great Lanterns beyond the village have gone dark, all at once.'],
-      ['Marla', 'Without them the Murk creeps in. It’s a fog that makes folk forget: names, numbers, why the sky is blue.'],
-      ['Sable', 'It was Vesper Null. I saw a pale figure carry the last light away toward the old Spire.'],
-      ['Marla', 'You carry the lamplighter’s banner, Wren. The Lanterns are guarded by creatures of the Murk.'],
-      ['Marla', 'They fight with questions, and only true answers can wound them.'],
-      ['Marla', 'Relight the Lanterns of Reason, Memory, Wayfinding and Wonder, and the gate to Null’s Spire will open.'],
-      ['Marla', 'Come back to me whenever you need rest. And talk to the regulars: they know a thing or two.'],
-      [null, 'Walk with the arrow keys or WASD, or tap where you want to go. Press Enter or Space, or tap a person, to talk.']
+      [null, 'Emberwick. Tonight a grey fog rolled down from the hills, and people began to forget.'],
+      ['Marla', 'Wren! Come inside, quick. Old Tobiah couldn’t remember his own daughter’s name just now.'],
+      ['Hedda', 'It is the Murk, Vesper Null’s fog. It feeds on forgetting, and it cannot touch a mind that knows things and keeps them.'],
+      ['Hedda', 'Look above the bar. Those are the four Lanterns of Lore: Reason, Memory, Wayfinding and Wonder. Null has put every one of them out.'],
+      ['Hedda', 'A Lantern can only be relit by a mind that has truly mastered its subject. So I am going to teach you, Wren.'],
+      ['Hedda', 'Science, history, geography and philosophy. I teach, then I test, and I do not test gently.'],
+      ['Hedda', 'For each subject: learn my four lessons, solve my puzzle, then pass the Trial. Win the Trial and its Lantern burns again.'],
+      ['Hedda', 'Sharpen your logic too. When all four Lanterns are lit, we face Null together.'],
+      [null, 'Pick a subject to start your first lesson.']
     ],
-    sable: [
-      ['Sable', 'Null was a scholar once, they say. The greatest in the land.'],
-      ['Sable', 'Then the years took their memory, piece by piece. Maybe they decided everyone should lose theirs too.']
-    ],
-    sableAfter: [['Sable', 'Four lanterns lit. The Spire gate stands open now, north-east of the village square. Be careful, Wren.']],
-    lanternLit: (name) => [[null, `The ${name} blazes back to life. The Murk retreats from this place.`]],
-    allLit: [[null, 'Far away, a gate of black stone groans open. Null’s Spire awaits, past the north-east corner of Emberwick.']],
-    gateClosed: [['Old Oma', 'That black gate leads to Null’s Spire. It won’t open while the Great Lanterns are dark.']],
-    gateOpen: [['Old Oma', 'The gate is open. Go on, little lamplighter. Bring back the light.']],
+    lanternLit: (name) => [['Hedda', `Look! The ${name} burns again. The fog outside the window just pulled back.`]],
+    allLit: [['Hedda', 'All four Lanterns blaze. Null will feel that. Finish the Logic lessons and puzzles, and the Final Trial is yours to take.']],
     ending: [
-      ['Vesper Null', 'I spent a lifetime learning. Then the fog came for my own mind, and I couldn’t bear it.'],
+      ['Vesper Null', 'I spent a lifetime learning. Then the fog came for my own mind, and I could not bear it.'],
       ['Vesper Null', 'I thought if everyone forgot, it would hurt less.'],
-      ['Wren', '…'],
-      ['Vesper Null', 'You answered every question. You remembered. Perhaps forgetting isn’t the end, if someone teaches it back.'],
-      [null, 'Null returns the stolen light. Every lantern in Emberwick blazes at once.'],
-      ['Marla', 'You did it, Wren! Come back anytime. The Codex keeps what you’ve learned bright, if you keep reviewing it.'],
-      [null, 'THE END. Thank you for playing. You can keep exploring, reviewing your Codex and training your mind.']
+      ['Hedda', 'Forgetting is not the end, Vesper. It is why we teach, and why we review.'],
+      ['Vesper Null', 'Then teach me again. I would like to remember.'],
+      [null, 'The Murk lifts from Emberwick. Every lamp in the village blazes at once.'],
+      ['Hedda', 'Well done, Wren. A lit Lantern still needs tending, so keep up your Recall. A mind is a fire, not a jar.'],
+      [null, 'THE END. Thank you for playing. Your lessons, puzzles, Recall and Training stay open.']
     ]
   };
 })();

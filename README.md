@@ -1,32 +1,33 @@
 # Lanterns of Lore
 
-A pixel-art JRPG where every battle is a question.
+A pixel-art JRPG set entirely inside one tavern, where a wizard teaches you about the world and then tests you.
 
-The four Great Lanterns around the village of Emberwick have gone dark, and the Murk, a fog that makes people forget, is creeping in. You play Wren, a young lamplighter. Walk out from the Gilded Lantern tavern, battle creatures of the Murk with what you know, solve the seals that guard each Lantern, and confront the villain, Vesper Null.
+The Murk, Vesper Null's fog of forgetting, is creeping over the village of Emberwick. In the Gilded Lantern tavern, Hedda the wizard takes on Wren as an apprentice. Learn each subject, solve Hedda's puzzles, and pass the Trials to relight the four Lanterns of Lore. Then face Null.
 
-## What it trains
+## How it plays
 
-| Area | Where | What you face |
-|---|---|---|
-| Science | Brass Observatory (north) | Physics, chemistry, biology, astronomy |
-| History | Sunken Archive (east) | Ancient to modern history |
-| Geography | Wayfarer Wilds (west) | Oceans, mountains, countries, plate tectonics |
-| Philosophy | Grove of Whys (south) | Thinkers, ethics, and logical fallacies |
-| Logic | Null’s Spire | Reasoning traps, probability, number puzzles |
+Everything happens from the study screen: no walking around.
 
-- **85 questions**, each with a true fact. Answering a question writes its fact into your **Codex**.
-- **Battles**: a right answer damages the monster. Answer within the gold bar's time for a swift strike that deals 50% more damage. A wrong answer lets the monster hit you, but you still see the right answer and why.
-- **Seals**: mechanism puzzles guard each Lantern: Tower of Hanoi, river crossing, measuring flasks, a ring of lanterns, a magic square and a code lock.
-- **Riddles**: eight townsfolk (marked with a gold `?`) have lateral-thinking riddles that reward Tonics.
-- **Recall**: Marla, the innkeeper, quizzes you on your Codex after 1, 2, 4, 8 and 16 days. This spaced repetition keeps the facts in your memory.
-- **Training**: daily mind drills (Quick Maths, Number Patterns, Digit Span).
+| Subject | Lantern | Puzzle | Trial |
+|---|---|---|---|
+| Science | Reason | The Alchemist's Flasks | The Entropy Engine |
+| History | Memory | The Tower of Ages | The Forgotten Emperor |
+| Geography | Wayfinding | The Ferry Problem | The Drift Leviathan |
+| Philosophy | Wonder | The Lantern Ring | The Sophist |
+| Logic | (key to the Final Trial) | Square of Fifteen, Null's Lock | |
+
+- **Lessons**: 20 lessons, four per subject. Hedda teaches a few fact cards, then tests you on them. Any question you miss comes back before the lesson ends, and you earn 1–3 stars.
+- **Puzzles**: each subject's puzzle unlocks after lesson 2. Hedda gives up to three hints.
+- **Trials**: turn-based battles where every attack is a question. A right answer strikes; answer before the gold bar empties for a swift strike worth 50% more. A wrong answer lets the shadow hit you, and you still see the answer and the fact behind it. Win to relight the Lantern.
+- **Final Trial**: once all four Lanterns burn and Logic is mastered, face Vesper Null, who asks questions from every subject.
+- **Recall**: every fact goes into your Codex and is re-tested after 1, 2, 4, 8 and 16 days (spaced repetition).
+- **Also**: a revision quiz and sparring illusions for each subject, a Riddle Board with eight lateral-thinking riddles, and Training drills (Quick Maths, Number Patterns, Digit Span).
+
+There are 85 questions, each with a true fact for the Codex.
 
 ## Controls
 
-- Move: arrow keys or WASD, or tap/click where you want to go.
-- Talk/examine: Enter or Space, the A button on touchscreens, or tap the person.
-- Menu (status, Codex, help): M or Esc, or the Menu button.
-- In battle: 1–4 to choose an answer, Enter to continue.
+Everything is clickable or tappable. On a keyboard: 1–4 choose an answer, Enter continues, M opens the menu and Esc closes windows.
 
 ## Running it
 
@@ -49,21 +50,22 @@ python3 tools/build_single.py lanterns-of-lore.html
 
 ```
 index.html          page shell
-css/style.css       JRPG windows, HUD, battle and menu styles
-js/questions.js     question bank (with Codex facts) and townsfolk riddles
-js/world.js         maps, characters, monster sprites and palettes, story script
-js/engine.js        isometric pixel renderer, lighting, pathfinding
-js/game.js          exploration, dialogue, battles, seals, inn, Codex, menus
-assets/             the hero sprite, battle art and portrait, and the tavern scene
+css/style.css       JRPG windows, study screens, battle and menu styles
+js/questions.js     question bank (with Codex facts) and tavern riddles
+js/lessons.js       Hedda's lessons, and each subject's puzzles and Trial
+js/world.js         pixel sprites and palettes, monsters, story script
+js/sprites.js       image loading and pixel-sprite drawing
+js/game.js          study, lessons, battles, puzzles, Recall, Training, menus
+assets/             Wren's sprite, battle art and portrait, and the tavern scene
 tools/              single-file build script
 ```
 
 ## Adding content
 
 - **Questions**: add `{ id, s, q, o, a, lore }` to `LL.QUESTIONS` in `js/questions.js`. `s` is the subject (`sci`, `his`, `geo`, `phi` or `log`). For a typed numeric answer, set `o: null` and make `a` the number.
-- **Maps**: each map in `js/world.js` is a grid of characters. The legend is in the comment above `LL.MAPS`.
+- **Lessons**: add `{ id, s, title, intro, qs }` to `LL.LESSONS` in `js/lessons.js`. `qs` lists the question ids the lesson teaches and tests.
 - **Monsters**: add to `LL.ENEMIES` with a sprite and palette from `LL.SPRITES` and `LL.PALETTES`.
 
 ## Art
 
-The hero (Wren) and the Gilded Lantern tavern scene are original artwork supplied by the project owner. Everything else is drawn in code.
+The hero (Wren) and the Gilded Lantern tavern scene are original artwork supplied by the project owner. Hedda's portrait, the monsters and the puzzles are drawn in code.

@@ -1,7 +1,7 @@
-/* Lanterns of Lore — game state, exploration, dialogue, battles, puzzles, menus. */
+/* Lanterns of Lore — the Gilded Lantern study: lessons, puzzles, trials, recall, training. */
 (function () {
   'use strict';
-  const LL = window.LL, R = LL.R;
+  const LL = window.LL;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -11,18 +11,19 @@
   const pad2 = (n) => String(n).padStart(2, '0');
   const today = (d = new Date()) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   const addDays = (k, n) => { const [y, m, d] = k.split('-').map(Number); return today(new Date(y, m - 1, d + n)); };
-  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
   const QBY = Object.fromEntries(LL.QUESTIONS.map((q) => [q.id, q]));
   const SUBJ = LL.SUBJECTS;
-  const LEITNER = [0, 1, 2, 4, 8, 16];
+  const ORDER = ['sci', 'his', 'geo', 'phi', 'log'];
   const LANTERN_SUBJ = ['sci', 'his', 'geo', 'phi'];
+  const LEITNER = [0, 1, 2, 4, 8, 16];
+  const lessonsOf = (s) => LL.LESSONS.filter((l) => l.s === s);
+  const WIZ = () => LL.spriteURL('wizard', 'wizard', 96);
+  const HERO = () => LL.ASSET_URLS.heroPortrait;
 
   /* ───────── state ───────── */
-  const KEY = 'lanterns-of-lore-v1';
-  const fresh = () => ({
-    v: 2, hero: { lv: 1, xp: 0, hp: 48, mp: 10, tonics: 2 }, map: 'tavern', pos: null, introDone: false,
-    lanterns: {}, seals: {}, chests: {}, riddles: {}, codex: {}, stats: {}, gym: { math: 0, pattern: 0, span: 0 }, ended: false
-  });
+  const KEY = 'lanterns-of-lore-v2';
+  const fresh = () => ({ v: 3, hero: { lv: 1, xp: 0, hp: 48, mp: 10, tonics: 2 }, lessons: {}, puzzles: {}, lanterns: {}, riddles: {}, codex: {}, stats: {}, gym: { math: 0, pattern: 0, span: 0 }, introDone: false, ended: false });
   let S = fresh();
   const maxHP = () => 40 + S.hero.lv * 8, maxMP = () => 8 + S.hero.lv * 2, xpNext = () => 30 + S.hero.lv * 25;
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable */ } };
@@ -30,374 +31,403 @@
   const loadSave = () => { try { const r = localStorage.getItem(KEY); if (r) S = Object.assign(fresh(), JSON.parse(r)); } catch (e) { /* ignore */ } };
   const litCount = () => LANTERN_SUBJ.filter((s) => S.lanterns[s]).length;
   const stat = (s) => (S.stats[s] = S.stats[s] || { r: 0, w: 0 });
+  function gainXP(n) {
+    const h = S.hero; let up = false;
+    h.xp += n;
+    while (h.xp >= xpNext()) { h.xp -= xpNext(); h.lv++; up = true; }
+    if (up) { h.hp = maxHP(); h.mp = maxMP(); }
+    save(); hud();
+    return up ? `Wren reached level ${h.lv}!` : '';
+  }
+  const learn = (qid, ok) => {
+    const e = S.codex[qid];
+    if (!e) S.codex[qid] = { box: ok ? 1 : 0, due: addDays(today(), ok ? 1 : 0) };
+    else if (!ok) { e.box = 0; e.due = today(); }
+  };
 
-  /* ───────── runtime ───────── */
-  const G = { mode: 'title', map: null, hero: { x: 0, y: 0, dir: 1, moving: false, inv: 0, path: null, pending: null }, actors: [], keys: {}, armed: false, pip: { x: 0, y: 0 } };
-  const cv = $('#world');
+  /* progress helpers */
+  const lessonDone = (id) => !!S.lessons[id];
+  const lessonOpen = (l) => { const ls = lessonsOf(l.s), i = ls.indexOf(l); return i === 0 || lessonDone(ls[i - 1].id); };
+  const puzzleOpen = (s) => lessonsOf(s).filter((l) => lessonDone(l.id)).length >= 2;
+  const allLessons = (s) => lessonsOf(s).every((l) => lessonDone(l.id));
+  const allPuzzles = (s) => LL.TRACKS[s].puzzles.every((p) => S.puzzles[p]);
+  const trialOpen = (s) => allLessons(s) && allPuzzles(s);
+  const finalOpen = () => litCount() === 4 && allLessons('log') && allPuzzles('log');
+  const trackDone = (s) => (s === 'log' ? allLessons('log') && allPuzzles('log') : !!S.lanterns[s]);
+  const dueEntries = () => { const t = today(); return Object.keys(S.codex).filter((id) => QBY[id] && S.codex[id].due <= t); };
 
-  /* ───────── map entry ───────── */
-  function enterMap(id, spawn, quiet) {
-    const m = LL.buildMap(id);
-    G.map = m; S.map = id;
-    let p;
-    if (spawn && spawn.x !== undefined) p = spawn;
-    else if (spawn && Array.isArray(spawn)) p = m.toWorld(spawn[0], spawn[1]);
-    else if (m.kind === 'image') p = m.def.start;
-    else p = m.toWorld(7, 10);
-    Object.assign(G.hero, { x: p.x, y: p.y, path: null, pending: null, inv: 1.5, blink: false });
-    G.pip = { x: p.x - 40, y: p.y - 90 };
-    G.armed = false;
-    buildActors();
-    R.follow(m, G.hero.x, G.hero.y, true);
-    if (!quiet) { banner(m.name); save(); }
+  /* ───────── shell ───────── */
+  let view = null, mode = 'title';
+  const app = $('#app');
+  function go(fn, ...args) { view = fn; fn.args = args; mode = 'app'; app.innerHTML = ''; fn(...args); window.scrollTo(0, 0); }
+  function refresh() { if (view && !view.noRefresh) { const y = window.scrollY; app.innerHTML = ''; view(...(view.args || [])); window.scrollTo(0, y); } }
+
+  function hud() {
+    const h = S.hero;
+    $('#hud').innerHTML = `
+      <button class="hud-hero win" id="hud-status" aria-label="Open Wren’s status">
+        <img class="hud-face" src="${HERO()}" alt="">
+        <span class="hud-stats">
+          <span class="hud-name">Wren <span>Lv ${h.lv}</span></span>
+          <span class="bar xp"><i style="width:${(h.xp / xpNext()) * 100}%"></i><b>XP ${h.xp}/${xpNext()}</b></span>
+          <span class="hud-sub">Tonics ×${h.tonics}</span>
+        </span>
+      </button>
+      <div class="hud-right">
+        <div class="lanterns win" aria-label="${litCount()} of 4 Lanterns of Lore lit">
+          ${LANTERN_SUBJ.map((s) => `<span class="lan ${S.lanterns[s] ? 'lit' : ''}" style="--c:${SUBJ[s].color}" title="${SUBJ[s].lantern}${S.lanterns[s] ? ' (lit)' : ''}"></span>`).join('')}
+        </div>
+        <button class="win menu-btn" id="menu-btn">Menu</button>
+      </div>`;
+    $('#menu-btn').onclick = () => openMenu('status');
+    $('#hud-status').onclick = () => openMenu('status');
   }
 
-  function buildActors() {
-    const m = G.map, d = m.def;
-    G.actors = [];
-    if (m.kind === 'image') return;
-    const at = (tx, ty) => m.toWorld(tx, ty);
-    (d.monsters || []).forEach(([eid, tx, ty], i) => { const p = at(tx, ty); G.actors.push({ type: 'monster', eid, x: p.x, y: p.y, hx: p.x, hy: p.y, tx: p.x, ty: p.y, stun: 0, seed: i }); });
-    if (d.boss && !(d.lantern ? S.lanterns[d.lantern] : S.ended)) { const p = at(d.boss.tx, d.boss.ty); G.actors.push({ type: 'boss', eid: d.boss.enemy, x: p.x, y: p.y, block: [d.boss.tx, d.boss.ty] }); }
-    if (d.lanternAt) { const p = at(d.lanternAt.tx, d.lanternAt.ty); G.actors.push({ type: 'lantern', x: p.x, y: p.y, block: [d.lanternAt.tx, d.lanternAt.ty] }); }
-    const seals = d.seals || (d.seal ? [Object.assign({ id: m.id }, d.seal)] : []);
-    seals.forEach((s) => { if (!S.seals[s.id]) { const p = at(s.tx, s.ty); G.actors.push({ type: 'seal', seal: s, x: p.x, y: p.y, block: [s.tx, s.ty] }); } });
-    (d.chests || []).forEach((c) => { const p = at(c.tx, c.ty); G.actors.push({ type: 'chest', chest: c, x: p.x, y: p.y, block: [c.tx, c.ty] }); });
-    if (d.gate) { const p = at(d.gate.tx, d.gate.ty); G.actors.push({ type: 'gate', x: p.x, y: p.y, block: [d.gate.tx, d.gate.ty] }); }
-  }
-
-  function walkable(x, y, ignoreNpc) {
-    const m = G.map;
-    if (!m.walkStatic(x, y)) return false;
-    if (m.kind !== 'image') {
-      const { tx, ty } = m.toTile(x, y);
-      if (G.actors.some((a) => a.block && a.block[0] === tx && a.block[1] === ty && a.type !== 'boss')) return false;
-    }
-    if (!ignoreNpc && m.npcs.some((n) => Math.hypot(n.x - x, (n.y - y) * 1.6) < (n.painted ? 24 : 30))) return false;
-    return true;
-  }
-  const heroFits = (x, y) => walkable(x, y) && walkable(x - 12, y) && walkable(x + 12, y) && walkable(x, y - 6);
-
-  /* ───────── interactions ───────── */
-  function interactables() {
-    const list = [];
-    G.map.npcs.forEach((n) => list.push({ kind: 'npc', n, x: n.talkX, y: n.talkY, r: n.r || 80, label: n.name, tagX: n.x, tagY: n.y - (n.painted ? 110 : 100) }));
-    G.actors.forEach((a) => {
-      if (a.type === 'seal') list.push({ kind: 'seal', a, x: a.x, y: a.y, r: 90, label: a.seal.name, tagX: a.x, tagY: a.y - 80 });
-      if (a.type === 'chest' && !S.chests[a.chest.id]) list.push({ kind: 'chest', a, x: a.x, y: a.y, r: 85, label: 'Chest', tagX: a.x, tagY: a.y - 50 });
-      if (a.type === 'gate') list.push({ kind: 'gate', a, x: a.x, y: a.y, r: 100, label: 'Black Gate', tagX: a.x, tagY: a.y - 100 });
-      if (a.type === 'lantern') list.push({ kind: 'lantern', a, x: a.x, y: a.y, r: 90, label: 'Great Lantern', tagX: a.x, tagY: a.y - 90 });
-    });
-    return list;
-  }
-  function nearest() {
-    let best = null, bd = Infinity;
-    interactables().forEach((it) => { const d = dist(G.hero, it); if (d < it.r && d < bd) { bd = d; best = it; } });
-    return best;
-  }
-
-  function interact(it) {
-    if (!it) return;
-    G.hero.path = null;
-    if (it.kind === 'npc') return talkTo(it.n);
-    if (it.kind === 'seal') return openPuzzle(it.a.seal);
-    if (it.kind === 'chest') {
-      S.chests[it.a.chest.id] = true; S.hero.tonics++; save(); hud();
-      return say([[null, 'You open the chest and find a Tonic. (Tonics restore HP in battle.)']]);
-    }
-    if (it.kind === 'gate') {
-      if (litCount() < 4) return say([[null, `The black gate is sealed. ${litCount()} of 4 Great Lanterns burn.`]]);
-      return transition('spire', LL.MAPS.village.gate.spawn);
-    }
-    if (it.kind === 'lantern') {
-      const s = G.map.def.lantern;
-      return say([[null, S.lanterns[s] ? `The ${SUBJ[s].lantern} burns bright. Here, the Murk cannot reach.` : `The ${SUBJ[s].lantern} is cold and dark. Something guards it.`]]);
-    }
-  }
-
-  function talkTo(n) {
-    if (n.action === 'inn') return innMenu();
-    if (n.gateKeeper) return say(litCount() >= 4 ? LL.STORY.gateOpen : LL.STORY.gateClosed);
-    if (n.story) return say(litCount() >= 4 ? LL.STORY.sableAfter : LL.STORY.sable);
-    const lines = (n.lines || []).map((l) => [n.name, l]);
-    if (n.riddle && !S.riddles[n.riddle]) {
-      lines.push([n.name, 'Now, a riddle for you. Solve it and I’ll give you a Tonic.']);
-      return say(lines, () => openRiddle(n));
-    }
-    if (n.riddle) lines.push([n.name, 'Thanks again for solving my riddle.']);
-    say(lines);
-  }
-
-  /* ───────── dialogue ───────── */
+  /* ───────── dialogue (story scenes) ───────── */
   let dq = [], dqDone = null, typing = null;
+  const PORTRAITS = { Hedda: () => WIZ(), Wren: () => HERO(), Marla: () => LL.spriteURL('person', 'marla', 96, true), 'Vesper Null': () => LL.spriteURL('robed', 'null', 96, true) };
   function say(lines, done) {
-    dq = lines.slice(); dqDone = done || null; G.mode = 'dialog';
+    dq = lines.slice(); dqDone = done || null; mode = 'dialog';
     $('#dialog').hidden = false; nextLine();
   }
-  function portraitFor(speaker) {
-    if (speaker === 'Wren') return `<img src="${LL.ASSET_URLS.heroPortrait}" alt="">`;
-    if (!speaker) return '';
-    const map = { Marla: 'marla', Sable: 'villager1', 'Vesper Null': 'null', 'Old Oma': 'hermit' };
-    const npc = G.map && G.map.npcs.find((n) => n.name === speaker);
-    const pal = map[speaker] || (npc && (npc.portrait || npc.pal));
-    const boss = Object.values(LL.ENEMIES).find((e) => e.name === speaker);
-    const c = boss ? LL.sprite(boss.sprite, boss.pal) : pal ? LL.sprite(pal === 'null' ? 'robed' : 'person', pal) : null;
-    if (!c) return '';
-    const crop = document.createElement('canvas'); crop.width = 64; crop.height = 64;
-    const g = crop.getContext('2d'); g.imageSmoothingEnabled = false;
-    const sw = c.width, sh = boss ? c.height : Math.min(c.height, sw);
-    g.drawImage(c, 0, 0, sw, sh, (64 - sw * (64 / Math.max(sw, sh))) / 2, 0, sw * (64 / Math.max(sw, sh)), sh * (64 / Math.max(sw, sh)));
-    return `<img src="${crop.toDataURL()}" alt="">`;
-  }
   function nextLine() {
-    if (!dq.length) { $('#dialog').hidden = true; G.mode = 'explore'; const f = dqDone; dqDone = null; if (f) f(); return; }
+    if (!dq.length) { $('#dialog').hidden = true; mode = $('#overlay').hidden ? 'app' : 'modal'; const f = dqDone; dqDone = null; if (f) f(); return; }
     const [who, text] = dq.shift();
-    $('#d-portrait').innerHTML = portraitFor(who); $('#d-portrait').hidden = !who;
+    const boss = Object.values(LL.ENEMIES).find((e) => e.name === who);
+    const src = PORTRAITS[who] ? PORTRAITS[who]() : boss ? LL.spriteURL(boss.sprite, boss.pal, 96) : null;
+    $('#d-portrait').innerHTML = src ? `<img src="${src}" alt="">` : ''; $('#d-portrait').hidden = !src;
     $('#d-name').textContent = who || ''; $('#d-name').hidden = !who;
-    const el = $('#d-text'); el.textContent = ''; el.classList.toggle('narration', !who);
+    const el = $('#d-text'); el.textContent = ''; el.classList.toggle('narration', !who); el.dataset.full = text;
     let i = 0; clearInterval(typing);
-    typing = setInterval(() => { i += 2; el.textContent = text.slice(0, i); if (i >= text.length) { clearInterval(typing); typing = null; } }, 18);
-    el.dataset.full = text;
+    typing = setInterval(() => { i += 2; el.textContent = text.slice(0, i); if (i >= text.length) { clearInterval(typing); typing = null; } }, 16);
   }
-  function advance() {
-    if (typing) { clearInterval(typing); typing = null; $('#d-text').textContent = $('#d-text').dataset.full; return; }
-    nextLine();
-  }
+  function advance() { if (typing) { clearInterval(typing); typing = null; $('#d-text').textContent = $('#d-text').dataset.full; return; } nextLine(); }
   $('#dialog').addEventListener('click', advance);
 
+  /* ───────── modal windows ───────── */
+  function openWin(html) { const o = $('#overlay'); o.innerHTML = html; o.hidden = false; o.scrollTop = 0; mode = 'modal'; }
+  function closeWin() { const o = $('#overlay'); o.hidden = true; o.innerHTML = ''; mode = 'app'; hud(); refresh(); }
   function choice(title, options) {
-    G.mode = 'menu';
-    openWin(`<div class="win choice-win"><h2>${esc(title)}</h2><div class="choice-list">
-      ${options.map((o, i) => `<button class="cmd" data-i="${i}" ${o.disabled ? 'disabled' : ''}><span>${esc(o.label)}</span>${o.note ? `<small>${esc(o.note)}</small>` : ''}</button>`).join('')}
-      </div></div>`);
+    openWin(`<div class="win small-win"><h2>${esc(title)}</h2><div class="choice-list">
+      ${options.map((o, i) => `<button class="cmd" data-i="${i}" ${o.disabled ? 'disabled' : ''}><span>${esc(o.label)}</span>${o.note ? `<small>${esc(o.note)}</small>` : ''}</button>`).join('')}</div></div>`);
     $$('.choice-list .cmd').forEach((b) => b.onclick = () => { const o = options[+b.dataset.i]; closeWin(); o.fn(); });
     $('.choice-list .cmd:not(:disabled)')?.focus();
   }
 
-  /* ───────── overlay windows ───────── */
-  function openWin(html) { const o = $('#overlay'); o.innerHTML = html; o.hidden = false; o.scrollTop = 0; document.body.classList.add('modal'); }
-  function closeWin() { const o = $('#overlay'); o.hidden = true; o.innerHTML = ''; document.body.classList.remove('modal'); if (G.mode !== 'dialog') G.mode = 'explore'; hud(); }
-
-  function banner(text) { const b = $('#banner'); b.textContent = text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
-  function toast(text) { const t = $('#toast'); t.textContent = text; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); }
-
-  function transition(to, spawn) {
-    G.mode = 'fade';
-    const f = $('#fade'); f.classList.add('on');
-    setTimeout(() => { enterMap(to, spawn); f.classList.remove('on'); setTimeout(() => { if (G.mode === 'fade') G.mode = 'explore'; }, 250); }, 320);
+  /* ───────── Hedda's advice ───────── */
+  function nextStep() {
+    const due = dueEntries().length;
+    if (S.ended) return { text: 'Every Lantern burns. Keep your memory sharp with Recall, and try the Riddle Board if you have not finished it.', act: due ? { label: `Recall ${due} facts`, fn: () => review(true) } : null };
+    if (due >= 6) return { text: `${due} facts are ready for Recall. Reviewing them now, just as you start to forget, is what makes them stick.`, act: { label: 'Start Recall', fn: () => review(true) } };
+    if (finalOpen()) return { text: 'All four Lanterns burn and your logic is sharp. Vesper Null is at the door. Are you ready for the Final Trial?', act: { label: 'Begin the Final Trial', fn: () => trial('null') } };
+    const prog = (s) => lessonsOf(s).filter((l) => lessonDone(l.id)).length + (allPuzzles(s) ? 1 : 0) + (S.lanterns[s] ? 1 : 0);
+    const subs = litCount() === 4 ? ['log'] : LANTERN_SUBJ.filter((s) => !S.lanterns[s]);
+    const s = subs.sort((a, b) => prog(a) - prog(b) || ORDER.indexOf(a) - ORDER.indexOf(b))[0];
+    const l = lessonsOf(s).find((x) => !lessonDone(x.id));
+    if (l) return { text: `${l === lessonsOf(s)[0] ? 'Let us begin' : 'Let us continue'} with ${SUBJ[s].name}. Today’s lesson: “${l.title}”.`, act: { label: `${SUBJ[s].name}: ${l.title}`, fn: () => lesson(l) } };
+    const p = LL.TRACKS[s].puzzles.find((k) => !S.puzzles[k]);
+    if (p) return { text: `You know the ${SUBJ[s].name} lessons. Now show me you can think: solve my ${PUZZLES[p].title}.`, act: { label: `Puzzle: ${PUZZLES[p].title}`, fn: () => openPuzzle(p) } };
+    const t = LL.TRACKS[s].trial;
+    return { text: `It is time for the ${SUBJ[s].name} Trial. I will summon ${LL.ENEMIES[t].name}. Beat it, and the ${SUBJ[s].lantern} will burn again.`, act: { label: `Trial: ${LL.ENEMIES[t].name}`, fn: () => trial(t) } };
   }
 
-  /* ───────── HUD ───────── */
-  function hud() {
-    const h = S.hero;
-    $('#hud').innerHTML = `
-      <div class="hud-hero win">
-        <img class="hud-face" src="${LL.ASSET_URLS.heroPortrait}" alt="">
-        <div class="hud-stats">
-          <div class="hud-name">Wren <span>Lv ${h.lv}</span></div>
-          <div class="bar hp" title="Health"><i style="width:${(h.hp / maxHP()) * 100}%"></i><b>HP ${h.hp}/${maxHP()}</b></div>
-          <div class="bar mp" title="Magic"><i style="width:${(h.mp / maxMP()) * 100}%"></i><b>MP ${h.mp}/${maxMP()}</b></div>
-        </div>
-      </div>
-      <div class="hud-right">
-        <div class="lanterns win" aria-label="${litCount()} of 4 Great Lanterns lit">
-          ${LANTERN_SUBJ.map((s) => `<span class="lan ${S.lanterns[s] ? 'lit' : ''}" style="--c:${SUBJ[s].color}" title="${SUBJ[s].lantern}${S.lanterns[s] ? ' (lit)' : ''}"></span>`).join('')}
-        </div>
-        <button class="win menu-btn" id="menu-btn" aria-label="Open menu">Menu</button>
+  function wizardBox(text, act, extra = '') {
+    return `<section class="wizard win">
+      <img class="wiz-face" src="${WIZ()}" alt="Hedda the wizard">
+      <div class="wiz-body"><span class="wiz-name">Hedda</span><p>${esc(text)}</p>
+      ${act || extra ? `<div class="wiz-acts">${act ? `<button class="cmd go" id="wiz-act">${esc(act.label)}</button>` : ''}${extra}</div>` : ''}</div>
+    </section>`;
+  }
+  const ICONS = {
+    sci: '<svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7.5 15h9"/></svg>',
+    his: '<svg viewBox="0 0 24 24"><path d="M4 21h16M5 21V10M9 21V10M15 21V10M19 21V10M3 10l9-6 9 6z"/></svg>',
+    geo: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+    phi: '<svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 1 4 10.5V16H8v-2.5A6 6 0 0 1 12 3zM9 19h6M10 22h4"/></svg>',
+    log: '<svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2"/></svg>'
+  };
+
+  /* ───────── HUB ───────── */
+  function hub() {
+    const ns = nextStep(), due = dueEntries().length;
+    const tool = (id, name, note, disabled) => `<button class="tool win" id="t-${id}" ${disabled ? 'disabled' : ''}><span class="tool-name">${name}</span><small>${esc(note)}</small></button>`;
+    app.innerHTML = `
+      <div class="screen hub">
+        <div class="scene"><canvas id="scene" width="700" height="300" role="img" aria-label="Wren and Hedda in the Gilded Lantern, ${litCount()} of 4 Lanterns lit"></canvas></div>
+        ${wizardBox(ns.text, ns.act)}
+        <section>
+          <h2 class="sec-title">Subjects</h2>
+          <div class="subjects">
+            ${ORDER.map((s) => {
+              const ls = lessonsOf(s), done = ls.filter((l) => lessonDone(l.id)).length;
+              const state = s === 'log' ? (trackDone('log') ? 'Mastered' : '') : S.lanterns[s] ? 'Lantern lit' : trialOpen(s) ? 'Trial ready' : '';
+              return `<button class="subject win ${trackDone(s) ? 'is-done' : ''}" data-s="${s}" style="--c:${SUBJ[s].color}">
+                <span class="sub-icon" aria-hidden="true">${ICONS[s]}</span>
+                <span class="sub-name">${SUBJ[s].name}</span>
+                <span class="sub-blurb">${LL.TRACKS[s].blurb}</span>
+                <span class="steps" aria-label="${done} of ${ls.length} lessons done">
+                  ${ls.map((l) => `<i class="${lessonDone(l.id) ? 'on' : ''}"></i>`).join('')}
+                  ${LL.TRACKS[s].puzzles.map((p) => `<i class="dia ${S.puzzles[p] ? 'on' : ''}"></i>`).join('')}
+                  ${s !== 'log' ? `<i class="lamp ${S.lanterns[s] ? 'on' : ''}"></i>` : ''}
+                </span>
+                <span class="sub-state">${state || `${done} of ${ls.length} lessons`}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </section>
+        <section>
+          <h2 class="sec-title">Around the tavern</h2>
+          <div class="tools">
+            ${tool('recall', 'Recall', due ? `${due} facts ready to review` : `${Object.keys(S.codex).length} facts learned`, !Object.keys(S.codex).length)}
+            ${tool('riddles', 'Riddle Board', `${Object.keys(S.riddles).length} of 8 solved`)}
+            ${tool('training', 'Training', 'Daily mind drills')}
+            ${tool('codex', 'Codex', 'Everything you have learned')}
+            ${tool('final', 'Final Trial', S.ended ? 'Null is at peace' : finalOpen() ? 'Face Vesper Null' : 'Light all four Lanterns first', !finalOpen() && !S.ended)}
+          </div>
+        </section>
       </div>`;
-    $('#menu-btn').onclick = () => { if (G.mode === 'explore') openMenu('status'); };
+    if (ns.act) $('#wiz-act').onclick = ns.act.fn;
+    drawScene();
+    $$('.subject').forEach((b) => b.onclick = () => go(subject, b.dataset.s));
+    $('#t-recall').onclick = () => review(due > 0);
+    $('#t-riddles').onclick = () => go(riddleBoard);
+    $('#t-training').onclick = trainingMenu;
+    $('#t-codex').onclick = () => openMenu('codex');
+    $('#t-final').onclick = () => (S.ended ? say([['Vesper Null', 'Thank you, Wren. I am learning again, one lesson at a time.']]) : trial('null'));
   }
 
-  /* ───────── main loop ───────── */
-  let last = performance.now();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (G.map) {
-      if (G.mode === 'explore') update(dt);
-      render();
-    }
-    requestAnimationFrame(frame);
-  }
-
-  function update(dt) {
-    const h = G.hero, sp = 230;
-    h.inv = Math.max(0, h.inv - dt);
-    let dx = 0, dy = 0;
-    if (G.keys.ArrowLeft || G.keys.a) dx -= 1; if (G.keys.ArrowRight || G.keys.d) dx += 1;
-    if (G.keys.ArrowUp || G.keys.w) dy -= 1; if (G.keys.ArrowDown || G.keys.s) dy += 1;
-    if (dx || dy) { h.path = null; h.pending = null; const l = Math.hypot(dx, dy); dx /= l; dy /= l; }
-    else if (h.path && h.path.length) {
-      const t = h.path[0], vx = t.x - h.x, vy = t.y - h.y, l = Math.hypot(vx, vy);
-      if (l < 6) h.path.shift(); else { dx = vx / l; dy = vy / l; }
-      if (!h.path.length) { h.path = null; if (h.pending) { const p = h.pending; h.pending = null; if (dist(h, p) < p.r + 10) interact(p); } }
-    }
-    h.moving = !!(dx || dy);
-    if (h.moving) {
-      if (dx) h.dir = dx < 0 ? -1 : 1;
-      const nx = h.x + dx * sp * dt, ny = h.y + dy * sp * dt * 0.75;
-      if (heroFits(nx, ny)) { h.x = nx; h.y = ny; }
-      else if (heroFits(nx, h.y)) h.x = nx;
-      else if (heroFits(h.x, ny)) h.y = ny;
-      else if (h.path) h.path.shift();
-    }
-    // Pip follows
-    G.pip.x += (h.x - 44 * h.dir - G.pip.x) * 0.06; G.pip.y += (h.y - 96 - G.pip.y) * 0.06;
-    // exits
-    const inExit = G.map.exits.find((e) => Math.hypot(e.x - h.x, (e.y - h.y) * 1.5) < e.r);
-    if (!inExit) G.armed = true;
-    else if (G.armed) {
-      const target = LL.MAPS[inExit.to];
-      const spawn = target.kind === 'image' ? (inExit.spawnPx || { x: 170, y: 768 }) : (inExit.spawn || [inExit.tx, inExit.ty]);
-      return transition(inExit.to, spawn);
-    }
-    // monsters
-    G.actors.forEach((a) => {
-      if (a.type !== 'monster' || a.dead || G.mode !== 'explore') return;
-      a.stun = Math.max(0, a.stun - dt);
-      const d = dist(a, h);
-      let tx = a.tx, ty = a.ty, spd = 45;
-      if (d < 230 && !a.stun && h.inv <= 0) { tx = h.x; ty = h.y; spd = 80; }
-      else if (Math.hypot(a.tx - a.x, a.ty - a.y) < 8 || Math.random() < 0.004) { a.tx = a.hx + rand(-110, 110); a.ty = a.hy + rand(-60, 60); }
-      const vx = tx - a.x, vy = ty - a.y, l = Math.hypot(vx, vy) || 1;
-      const nx = a.x + (vx / l) * spd * dt, ny = a.y + (vy / l) * spd * dt * 0.75;
-      if (walkable(nx, ny, true)) { a.x = nx; a.y = ny; } else { a.tx = a.hx; a.ty = a.hy; }
-      a.flip = vx < 0;
-      if (d < 46 && !a.stun && h.inv <= 0) startBattle(a);
-    });
-    G.actors.forEach((a) => { if (a.type === 'boss' && dist(a, h) < 70 && G.mode === 'explore') startBattle(a); });
-    R.follow(G.map, h.x, h.y);
-  }
-
-  function render() {
-    const m = G.map, h = G.hero, t = R.t;
-    const acts = [];
-    const near = G.mode === 'explore' ? nearest() : null;
-    // hero
-    acts.push({ y: h.y, draw: (g) => {
-      R.shadow(g, h.x, h.y, 26);
-      if (h.inv > 0 && h.blink && Math.floor(t * 12) % 2) g.globalAlpha = 0.5;
-      R.spriteAt(g, LL.IMG.hero, h.x, h.y + 4, 2, h.dir < 0, h.moving ? -Math.abs(Math.sin(t * 12)) * 5 : Math.sin(t * 2) * 1.2);
-      g.globalAlpha = 1;
-    } });
-    // pip
-    acts.push({ y: G.pip.y + 120, draw: (g) => {
-      const x = G.pip.x, y = G.pip.y + Math.sin(t * 3) * 6;
-      const gr = g.createRadialGradient(x, y, 0, x, y, 22); gr.addColorStop(0, 'rgba(255,240,180,1)'); gr.addColorStop(0.3, 'rgba(255,200,90,.8)'); gr.addColorStop(1, 'rgba(255,170,60,0)');
-      g.fillStyle = gr; g.fillRect(x - 22, y - 22, 44, 44); g.fillStyle = '#fff8e0'; g.fillRect(Math.round(x) - 3, Math.round(y) - 3, 6, 6);
-    } });
-    // npcs (tiled maps)
-    m.npcs.forEach((n) => {
-      if (n.painted) return;
-      acts.push({ y: n.y, draw: (g) => { R.shadow(g, n.x, n.y, 22); R.spriteAt(g, LL.sprite('person', n.pal), n.x, n.y + 2, 5, n.x > h.x, Math.sin(t * 2 + n.x) * 1.5); } });
-    });
-    // riddle markers on npcs
-    m.npcs.forEach((n) => {
-      if (n.riddle && !S.riddles[n.riddle]) acts.push({ y: 99999, draw: (g) => { const y = n.y - (n.painted ? 120 : 110) + Math.sin(t * 4) * 4; g.fillStyle = '#ffd36a'; g.font = '700 26px "Pixelify Sans", sans-serif'; g.textAlign = 'center'; g.fillText('?', n.x, y); } });
-    });
-    G.actors.forEach((a) => {
-      if (a.dead) return;
-      if (a.type === 'monster') {
-        const e = LL.ENEMIES[a.eid];
-        acts.push({ y: a.y, draw: (g) => { R.shadow(g, a.x, a.y, 22); if (a.stun) g.globalAlpha = 0.45; R.spriteAt(g, LL.sprite(e.sprite, e.pal), a.x, a.y + 2, 5, a.flip, -Math.abs(Math.sin(t * 5 + a.seed)) * 6); g.globalAlpha = 1; } });
+  /* the study scene: a crop of the tavern painting, with Wren beside Hedda and the four Lanterns */
+  let sceneRaf = 0;
+  window.addEventListener('resize', () => { if ($('#scene')) drawScene(); });
+  function drawScene() {
+    cancelAnimationFrame(sceneRaf);
+    const c = $('#scene'); if (!c || !LL.IMG.tavern) return;
+    c.width = 700; c.height = Math.max(150, Math.round(700 * c.clientHeight / Math.max(1, c.clientWidth)));
+    const H = c.height, sy = 915 - H;          // keep the rug (image y≈880) near the bottom of the frame
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    const frameFn = (now) => {
+      if (!document.body.contains(c)) return;
+      const t = now / 1000;
+      g.drawImage(LL.IMG.tavern, 100, sy, 700, H, 0, 0, 700, H);
+      // warm vignette
+      const v = g.createRadialGradient(350, H * 0.6, 80, 350, H * 0.6, 420); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(8,6,10,.55)');
+      g.fillStyle = v; g.fillRect(0, 0, 700, H);
+      // glow under Hedda (painted on the rug at x≈165)
+      const hy = 830 - sy, wy = 882 - sy;
+      const hg = g.createRadialGradient(165, hy, 4, 165, hy, 70); hg.addColorStop(0, `rgba(177,140,255,${0.28 + Math.sin(t * 2) * 0.06})`); hg.addColorStop(1, 'rgba(177,140,255,0)');
+      g.fillStyle = hg; g.fillRect(90, hy - 75, 150, 150);
+      // Wren
+      const hero = LL.IMG.hero;
+      if (hero) {
+        g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(255, wy - 2, 26, 7, 0, 0, 7); g.fill();
+        g.save(); g.translate(255, wy + Math.sin(t * 2) * 1.5); g.scale(-2, 2); g.drawImage(hero, -hero.width / 2, -hero.height); g.restore();
       }
-      if (a.type === 'boss') {
-        const e = LL.ENEMIES[a.eid];
-        acts.push({ y: a.y, draw: (g) => { R.shadow(g, a.x, a.y, 40); R.spriteAt(g, LL.sprite(e.sprite, e.pal), a.x, a.y + 4, 8, false, Math.sin(t * 2) * 4); } });
-      }
-      if (a.type === 'lantern') {
-        const lit = S.lanterns[m.def.lantern];
-        acts.push({ y: a.y, draw: (g) => R.spriteAt(g, LL.sprite('lantern', lit ? 'lanternOn' : 'lanternOff'), a.x, a.y + 4, 6, false) });
-      }
-      if (a.type === 'seal') acts.push({ y: a.y, draw: (g) => { g.globalAlpha = 0.8 + Math.sin(t * 3) * 0.2; R.spriteAt(g, LL.sprite('seal', 'seal'), a.x, a.y - 4, 5, false, Math.sin(t * 2) * 3); g.globalAlpha = 1; } });
-      if (a.type === 'chest') acts.push({ y: a.y, draw: (g) => R.spriteAt(g, LL.sprite('chest', S.chests[a.chest.id] ? 'chestOpen' : 'chest'), a.x, a.y + 4, 4, false) });
-      if (a.type === 'gate') acts.push({ y: a.y, draw: (g) => R.spriteAt(g, LL.sprite('gate', litCount() >= 4 ? 'gateOpen' : 'gate'), a.x, a.y + 6, 7, false) });
-    });
-    if (near) acts.push({ y: 100000, draw: (g) => R.label(g, `${near.label} · ${near.kind === 'npc' ? 'Talk' : 'Examine'}`, near.tagX, near.tagY) });
-
-    // lights
-    const lights = m.lights.slice();
-    lights.push({ x: G.pip.x, y: G.pip.y + 40, r: 260, col: '255,210,120', flick: true });
-    G.actors.forEach((a) => {
-      if (a.type === 'lantern' && S.lanterns[m.def.lantern]) lights.push({ x: a.x, y: a.y - 60, r: 520, col: '255,210,110', flick: true });
-      if (a.type === 'seal') lights.push({ x: a.x, y: a.y - 40, r: 140, col: '177,140,255' });
-      if (a.type === 'gate' && litCount() >= 4) lights.push({ x: a.x, y: a.y - 60, r: 180, col: '177,140,255' });
-      if (a.type === 'monster' && !a.dead && LL.ENEMIES[a.eid].sprite === 'wisp') lights.push({ x: a.x, y: a.y - 30, r: 110, col: '255,150,80' });
-    });
-    let dark = m.def.dark || 0;
-    const lantern = m.def.lantern;
-    if (lantern && S.lanterns[lantern]) dark *= 0.45;
-    if (m.id === 'village') dark = Math.max(0.2, dark - litCount() * 0.07) * (S.ended ? 0.5 : 1);
-    if (m.id === 'spire' && S.ended) dark *= 0.5;
-    const murk = (lantern && !S.lanterns[lantern]) || (m.id === 'spire' && !S.ended);
-    R.draw(cv, m, acts, { dark, lights, murk });
+      // the four Lanterns of Lore, hanging over the bar
+      LANTERN_SUBJ.forEach((s, i) => {
+        const x = 380 + i * 62, y = 10 + Math.sin(t * 1.5 + i) * 1.5, lit = S.lanterns[s];
+        g.fillStyle = '#2a1e14'; g.fillRect(x - 1, 0, 2, y + 6);
+        if (lit) { const gl = g.createRadialGradient(x, y + 34, 2, x, y + 34, 46); gl.addColorStop(0, SUBJ[s].color + 'aa'); gl.addColorStop(1, SUBJ[s].color + '00'); g.fillStyle = gl; g.fillRect(x - 46, y - 12, 92, 92); }
+        const spr = LL.sprite('lantern', lit ? 'lanternOn' : 'lanternOff');
+        g.drawImage(spr, x - spr.width * 2, y + 6, spr.width * 4, spr.height * 4);
+        if (lit) { g.fillStyle = SUBJ[s].color; g.fillRect(x - 6, y + 22, 12, 14); }
+      });
+      sceneRaf = requestAnimationFrame(frameFn);
+    };
+    sceneRaf = requestAnimationFrame(frameFn);
   }
 
-  /* ───────── input ───────── */
-  const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-  window.addEventListener('keydown', (e) => {
-    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-    if (e.target.matches && e.target.matches('input')) { if (k === 'Escape') e.target.blur(); return; }
-    if (G.mode === 'explore') {
-      if (ARROWS.includes(k) || 'wasd'.includes(k) && k.length === 1) { G.keys[k] = true; e.preventDefault(); }
-      if (k === 'Enter' || k === ' ') { e.preventDefault(); interact(nearest()); }
-      if (k === 'Escape' || k === 'm') openMenu('status');
-    } else if (G.mode === 'dialog') {
-      if (k === 'Enter' || k === ' ') { e.preventDefault(); advance(); }
-    } else if (G.mode === 'battle') battleKey(k, e);
-    else if (G.mode === 'menu' && k === 'Escape') { const c = $('#overlay [data-close]'); if (c) c.click(); }
-  });
-  window.addEventListener('keyup', (e) => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; G.keys[k] = false; });
-  window.addEventListener('blur', () => { G.keys = {}; });
-
-  cv.addEventListener('pointerdown', (e) => {
-    if (G.mode !== 'explore') return;
-    const r = cv.getBoundingClientRect();
-    const w = R.screenToWorld(e.clientX - r.left, e.clientY - r.top);
-    // clicked an interactable?
-    const hit = interactables().find((it) => {
-      const tx = it.kind === 'npc' ? it.n.x : it.x, ty = it.kind === 'npc' ? it.n.y : it.y;
-      return Math.abs(w.x - tx) < 45 && w.y < ty + 20 && w.y > ty - 120;
+  /* ───────── SUBJECT ───────── */
+  const SUB_INTRO = {
+    sci: 'Science is a way of asking nature questions and listening carefully to the answers.',
+    his: 'History is the memory of the whole human family. Null would love for us to lose it.',
+    geo: 'Geography is knowing where you are: on a map, on a moving planet, among other people.',
+    phi: 'Philosophy is thinking about thinking. It is the best armour against clever nonsense.',
+    log: 'Logic is the sword that cuts through every trick. Even Null’s own lock yields to it.'
+  };
+  function subject(s) {
+    const ls = lessonsOf(s), tr = LL.TRACKS[s];
+    const steps = [];
+    ls.forEach((l, i) => {
+      const st = S.lessons[l.id];
+      steps.push({ id: 'l-' + l.id, kind: `Lesson ${i + 1}`, title: l.title, state: st ? 'done' : lessonOpen(l) ? 'open' : 'locked',
+        note: st ? `${'★'.repeat(st.stars)}${'☆'.repeat(3 - st.stars)} · retake any time` : lessonOpen(l) ? `${l.qs.length} facts, then a short test` : 'Finish the lesson before this one' });
     });
-    const target = hit ? { x: hit.x, y: hit.y } : w;
-    if (hit && dist(G.hero, hit) < hit.r) return interact(hit);
-    const path = LL.findPath((x, y) => walkable(x, y), G.hero, target, G.map.w, G.map.h);
-    if (path) { G.hero.path = path; G.hero.pending = hit || null; }
-  });
-
-  $('#act-btn').addEventListener('click', () => {
-    if (G.mode === 'explore') interact(nearest()); else if (G.mode === 'dialog') advance();
-  });
-
-  /* ───────── battle ───────── */
-  let B = null;
-  function pickQuestion(s, used) {
-    let pool = LL.QUESTIONS.filter((q) => (s === 'mix' ? true : q.s === s) && !used.has(q.id));
-    if (!pool.length) pool = LL.QUESTIONS.filter((q) => s === 'mix' || q.s === s);
-    const fresh = pool.filter((q) => !S.codex[q.id] || S.codex[q.id].box === 0);
-    return pick(fresh.length && Math.random() < 0.75 ? fresh : pool);
+    tr.puzzles.forEach((p) => steps.push({ id: 'p-' + p, kind: 'Puzzle', title: PUZZLES[p].title, state: S.puzzles[p] ? 'done' : puzzleOpen(s) ? 'open' : 'locked',
+      note: S.puzzles[p] ? 'Solved · play again any time' : puzzleOpen(s) ? PUZZLES[p].tag : 'Unlocks after lesson 2' }));
+    if (tr.trial) {
+      const e = LL.ENEMIES[tr.trial];
+      steps.push({ id: 't-trial', kind: 'Trial', title: e.name, state: S.lanterns[s] ? 'done' : trialOpen(s) ? 'open' : 'locked',
+        note: S.lanterns[s] ? `${SUBJ[s].lantern} lit · fight again for practice` : trialOpen(s) ? `Win to relight the ${SUBJ[s].lantern}` : 'Finish every lesson and the puzzle first' });
+    }
+    const anyDone = ls.some((l) => lessonDone(l.id));
+    app.innerHTML = `<div class="screen" style="--c:${SUBJ[s].color}">
+      <button class="back" id="back">← The study</button>
+      <header class="sub-head"><span class="sub-icon big" aria-hidden="true">${ICONS[s]}</span><div><p class="eyebrow">${s === 'log' ? 'The key to the Final Trial' : SUBJ[s].lantern}</p><h1>${SUBJ[s].name}</h1></div></header>
+      ${wizardBox(SUB_INTRO[s], null, `<button class="cmd" id="revise" ${anyDone ? '' : 'disabled'}>Revision quiz</button><button class="cmd" id="spar" ${anyDone ? '' : 'disabled'}>Spar with an illusion</button>`)}
+      <ol class="path">${steps.map((o) => `<li><button class="step win is-${o.state}" ${o.state === 'locked' ? 'disabled' : ''} id="${o.id}">
+        <span class="step-kind">${o.kind}</span><span class="step-title">${esc(o.title)}</span><span class="step-note">${esc(o.note)}</span></button></li>`).join('')}</ol>
+    </div>`;
+    $('#back').onclick = () => go(hub);
+    ls.forEach((l) => { $('#l-' + l.id).onclick = () => lesson(l); });
+    tr.puzzles.forEach((p) => { $('#p-' + p).onclick = () => openPuzzle(p); });
+    if (tr.trial) $('#t-trial').onclick = () => trial(tr.trial);
+    $('#spar').onclick = () => spar(s);
+    $('#revise').onclick = () => reviseQuiz(s);
   }
 
-  function startBattle(actor) {
-    const e = LL.ENEMIES[actor.eid];
-    G.keys = {}; G.hero.path = null;
-    const begin = () => {
-      const base = 20 + S.hero.lv * 5;
-      B = { actor, e, base, max: e.hits * base, hp: e.hits * base, used: new Set(), q: null, phase: 'ask', t0: 0, anim: { shake: 0, flash: 0, lunge: 0, hurt: 0 }, raf: 0 };
-      G.mode = 'battle';
-      openWin(battleHTML());
-      bindBattle();
-      battleLoop();
+  /* ───────── LESSON: teach, then test ───────── */
+  function frame(s, label, progress, inner, backFn) {
+    app.innerHTML = `<div class="screen lesson" style="--c:${SUBJ[s].color}">
+      <div class="lesson-top"><button class="back" id="back">← ${SUBJ[s].name}</button><span class="eyebrow">${esc(label)}</span></div>
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progress * 100)}"><i style="width:${progress * 100}%"></i></div>
+      ${inner}</div>`;
+    $('#back').onclick = backFn || (() => go(subject, s));
+    window.scrollTo(0, 0);
+  }
+  function lesson(l) {
+    view = lesson; lesson.noRefresh = true; mode = 'app';
+    const qs = l.qs.map((id) => QBY[id]), s = l.s, idx = lessonsOf(s).indexOf(l) + 1;
+    const total = qs.length * 2 + 1, label = `Lesson ${idx} · ${l.title}`;
+    let card = -1;
+    const teach = () => {
+      const intro = card < 0, q = intro ? null : qs[card];
+      frame(s, label, (card + 1) / total, `<article class="teach win">
+          <img class="teach-face" src="${WIZ()}" alt="">
+          <div class="teach-body">
+            <span class="wiz-name">Hedda ${intro ? 'begins' : `· card ${card + 1} of ${qs.length}`}</span>
+            ${intro ? `<p class="teach-text">${esc(l.intro)}</p><p class="muted">Read each card carefully. At the end I will test you on every one.</p>`
+              : `<p class="teach-text">${esc(q.lore)}</p>`}
+          </div>
+        </article>
+        <div class="lesson-nav">
+          <button class="cmd" id="prev" ${intro ? 'disabled' : ''}>Back</button>
+          <button class="cmd go" id="next">${card === qs.length - 1 ? 'I’m ready for the test' : intro ? 'Begin' : 'Next card'} <small>Enter</small></button>
+        </div>`);
+      $('#prev').onclick = () => { card--; teach(); };
+      $('#next').onclick = () => { if (card === qs.length - 1) test(); else { card++; teach(); } };
+      $('#next').focus({ preventScroll: true });
+    };
+    const test = () => {
+      const queue = shuffle(qs), missed = new Set(); let done = 0;
+      const ask = () => {
+        if (!queue.length) return finish();
+        const q = queue[0], retry = missed.has(q.id);
+        frame(s, label, (qs.length + 1 + done) / total, `<article class="quiz win">
+            <span class="wiz-name">Hedda asks${retry ? ' again' : ''} · ${done + 1} of ${qs.length}</span>
+            <p class="q-text">${esc(q.q)}</p>
+            <div id="q-opts" class="q-opts"></div><div id="q-after" class="q-after"></div>
+          </article>`);
+        answerUI(q, (ok) => {
+          learn(q.id, ok); const st = stat(q.s); ok ? st.r++ : st.w++;
+          queue.shift();
+          if (ok) done++; else { missed.add(q.id); queue.push(q); }
+          save();
+          $('#q-after').insertAdjacentHTML('beforeend', `<button class="cmd go" id="qn">${ok ? (queue.length ? 'Next question' : 'Finish') : 'Continue'} <small>Enter</small></button>`);
+          $('#qn').onclick = ask; $('#qn').focus({ preventScroll: true });
+        }, (ok) => ok ? pick(['Exactly right.', 'Yes! You were listening.', 'Correct. Well remembered.']) : 'Not quite. Read this again: I will ask you once more before we finish.');
+      };
+      const finish = () => {
+        const wrong = missed.size, stars = wrong === 0 ? 3 : wrong === 1 ? 2 : 1;
+        const prev = S.lessons[l.id], first = !prev;
+        S.lessons[l.id] = { stars: Math.max(stars, prev ? prev.stars : 0) };
+        const xp = first ? 10 + (qs.length - wrong) * 6 : 5;
+        const lvl = gainXP(xp);
+        const next = lessonsOf(s)[idx];
+        const extras = [];
+        if (first && idx === 2) extras.push(`New puzzle: ${PUZZLES[LL.TRACKS[s].puzzles[0]].title}`);
+        if (first && !next && trialOpen(s) && LL.TRACKS[s].trial) extras.push('The Trial is ready');
+        frame(s, label, 1, `<article class="result win">
+            <div class="stars" aria-label="${stars} of 3 stars">${[1, 2, 3].map((i) => `<span class="${i <= stars ? 'on' : ''}">★</span>`).join('')}</div>
+            <h2>Lesson complete</h2>
+            <div class="pw-intro"><img src="${WIZ()}" alt=""><p>${wrong === 0 ? 'Every answer right first time. Splendid work, Wren.' : `${qs.length - wrong} of ${qs.length} right first time. The ones you missed go into Recall, so you will meet them again tomorrow.`}</p></div>
+            <p class="muted">+${xp} XP${lvl ? ` · ${lvl}` : ''}${extras.length ? ' · ' + extras.join(' · ') : ''}</p>
+            <div class="lesson-nav">
+              ${next ? `<button class="cmd go" id="nx">Next lesson: ${esc(next.title)}</button>` : ''}
+              <button class="cmd ${next ? '' : 'go'}" id="bk">Back to ${SUBJ[s].name}</button>
+            </div>
+          </article>`);
+        $('#bk').onclick = () => go(subject, s);
+        if (next) $('#nx').onclick = () => lesson(next);
+        ($('#nx') || $('#bk')).focus({ preventScroll: true });
+      };
       ask();
     };
-    if (e.boss) say(e.intro.map((l) => [e.name, l]), begin); else begin();
+    teach();
   }
 
-  function battleHTML() {
-    const e = B.e;
-    return `<div class="battle" style="--sc:${SUBJ[e.s] ? SUBJ[e.s].color : '#b18cff'}">
+  /* shared answer widget: options or a number input, then the verdict and the fact */
+  function answerUI(q, onDone, verdictText) {
+    const finish = (ok, btn) => {
+      $$('#q-opts button, #q-opts input').forEach((b) => (b.disabled = true));
+      if (q.o) $$('#q-opts .opt').forEach((b) => { if (+b.dataset.i === q.a) b.classList.add('right'); });
+      if (btn && !ok) btn.classList.add('wrong');
+      const v = verdictText(ok);
+      $('#q-after').innerHTML = `${v ? `<p class="verdict ${ok ? 'good' : 'bad'}">${esc(v)}${ok ? '' : ` The answer is <b>${esc(q.o ? q.o[q.a] : q.a)}</b>.`}</p>` : ''}<div class="lore"><p>${esc(q.lore)}</p></div>`;
+      onDone(ok);
+    };
+    if (q.o) {
+      $('#q-opts').innerHTML = shuffle(q.o.map((_, i) => i)).map((i, k) => `<button class="opt" data-i="${i}"><kbd>${k + 1}</kbd>${esc(q.o[i])}</button>`).join('');
+      $$('#q-opts .opt').forEach((b) => b.onclick = () => finish(+b.dataset.i === q.a, b));
+    } else {
+      $('#q-opts').innerHTML = `<form class="num-form" id="nf" autocomplete="off"><input id="nin" inputmode="decimal" aria-label="Your answer" spellcheck="false"><button class="opt" type="submit">Answer</button></form>`;
+      $('#nf').onsubmit = (e) => { e.preventDefault(); const v = parseFloat($('#nin').value.replace(/,/g, '').replace(/[^\d.\-]/g, '')); if (!isNaN(v)) finish(Math.abs(v - q.a) < 0.01); };
+      setTimeout(() => $('#nin')?.focus({ preventScroll: true }), 30);
+    }
+  }
+
+  /* revision quiz: 6 questions from this subject's finished lessons */
+  function reviseQuiz(s) {
+    view = reviseQuiz; reviseQuiz.noRefresh = true; mode = 'app';
+    const ids = shuffle(lessonsOf(s).filter((l) => lessonDone(l.id)).flatMap((l) => l.qs)).slice(0, 6);
+    let i = 0, right = 0;
+    const step = () => {
+      if (i >= ids.length) {
+        const lvl = gainXP(right * 3);
+        frame(s, 'Revision', 1, `<article class="result win"><h2>${right} of ${ids.length}</h2>
+          <div class="pw-intro"><img src="${WIZ()}" alt=""><p>${right === ids.length ? 'Flawless. That knowledge is yours now.' : 'The ones you missed are back in Recall for tomorrow.'}</p></div>
+          <p class="muted">+${right * 3} XP${lvl ? ' · ' + lvl : ''}</p>
+          <div class="lesson-nav"><button class="cmd go" id="again">Another round</button><button class="cmd" id="bk">Back to ${SUBJ[s].name}</button></div></article>`);
+        $('#again').onclick = () => reviseQuiz(s); $('#bk').onclick = () => go(subject, s); $('#again').focus();
+        return;
+      }
+      const q = QBY[ids[i]];
+      frame(s, `Revision · ${i + 1} of ${ids.length}`, i / ids.length, `<article class="quiz win"><span class="wiz-name">Hedda asks</span><p class="q-text">${esc(q.q)}</p><div id="q-opts" class="q-opts"></div><div id="q-after" class="q-after"></div></article>`);
+      answerUI(q, (ok) => {
+        if (ok) right++; learn(q.id, ok); const st = stat(q.s); ok ? st.r++ : st.w++; save();
+        $('#q-after').insertAdjacentHTML('beforeend', `<button class="cmd go" id="qn">${i === ids.length - 1 ? 'Finish' : 'Next'} <small>Enter</small></button>`);
+        $('#qn').onclick = () => { i++; step(); }; $('#qn').focus({ preventScroll: true });
+      }, (ok) => ok ? 'Correct.' : 'Not this time.');
+    };
+    step();
+  }
+
+  /* ───────── BATTLES: trials and sparring ───────── */
+  let B = null;
+  function spar(s) {
+    const pool = Object.keys(LL.ENEMIES).filter((k) => !LL.ENEMIES[k].boss && LL.ENEMIES[k].s === s);
+    const eid = pick(pool.length ? pool : ['murkSlime']);
+    say([['Hedda', `I will conjure an illusion: a ${LL.ENEMIES[eid].name}. It cannot truly hurt you, but answer well!`]], () => battle(eid, false));
+  }
+  function trial(eid) {
+    const e = LL.ENEMIES[eid];
+    const pre = e.final ? [['Hedda', 'The door… it is Vesper Null. Stand beside me, Wren. Answer true, and the Murk cannot hold you.']]
+      : [['Hedda', `Your Trial. I call forth ${e.name}, a shadow of forgotten ${SUBJ[e.s].name.toLowerCase()}. Defeat it with what you have learned.`]];
+    say([...pre, ...e.intro.map((t) => [e.name, t])], () => battle(eid, true));
+  }
+  function pickQuestion(s, used) {
+    const ok = (q) => s === 'mix' || q.s === s;
+    let pool = LL.QUESTIONS.filter((q) => ok(q) && !used.has(q.id));
+    if (!pool.length) pool = LL.QUESTIONS.filter(ok);
+    const weak = pool.filter((q) => !S.codex[q.id] || S.codex[q.id].box <= 1);
+    return pick(weak.length && Math.random() < 0.6 ? weak : pool);
+  }
+  function battle(eid, isTrial) {
+    const e = LL.ENEMIES[eid], base = 20 + S.hero.lv * 5;
+    S.hero.hp = maxHP(); S.hero.mp = maxMP();
+    B = { e, isTrial, base, max: e.hits * base, hp: e.hits * base, used: new Set(), q: null, phase: 'ask', t0: 0, anim: { shake: 0, flash: 0, lunge: 0, hurt: 0 }, raf: 0, clarity: false };
+    openWin(`<div class="battle" style="--sc:${SUBJ[e.s] ? SUBJ[e.s].color : '#b18cff'}">
       <div class="stage">
         <canvas id="bstage" width="480" height="220"></canvas>
-        <div class="enemy-plate win"><span class="ename">${esc(e.name)}</span><span class="subj">${e.s === 'mix' ? 'All subjects' : SUBJ[e.s].name}</span>
+        <div class="enemy-plate win"><span class="ename">${esc(e.name)}</span><span class="subj">${e.s === 'mix' ? 'Every subject' : SUBJ[e.s].name} · ${isTrial ? 'Trial' : 'Illusion'}</span>
           <div class="bar ehp"><i id="ehp" style="width:100%"></i></div></div>
         <div id="fx" aria-hidden="true"></div>
       </div>
@@ -408,22 +438,30 @@
         <div id="q-after" class="q-after"></div>
       </div>
       <div class="bfoot">
-        <div class="party win">
-          <img src="${LL.ASSET_URLS.heroPortrait}" alt="">
+        <div class="party win"><img src="${HERO()}" alt="">
           <div class="hud-stats"><div class="hud-name">Wren <span>Lv ${S.hero.lv}</span></div>
-            <div class="bar hp"><i id="bhp"></i><b id="bhp-t"></b></div><div class="bar mp"><i id="bmp"></i><b id="bmp-t"></b></div></div>
-        </div>
+            <div class="bar hp"><i id="bhp"></i><b id="bhp-t"></b></div><div class="bar mp"><i id="bmp"></i><b id="bmp-t"></b></div></div></div>
         <div class="cmds">
           <button class="cmd" id="c-clarity">Clarity <small>3 MP · remove wrong answers</small></button>
-          <button class="cmd" id="c-mend">Mend <small>4 MP · heal</small></button>
+          <button class="cmd" id="c-mend">Mend <small>4 MP · heal 40%</small></button>
           <button class="cmd" id="c-tonic">Tonic <small id="tonic-n"></small></button>
-          <button class="cmd" id="c-flee" ${B.e.boss ? 'disabled' : ''}>Flee</button>
+          <button class="cmd" id="c-flee">${isTrial ? 'Withdraw' : 'End spar'} <small>leave the fight</small></button>
         </div>
-      </div>
-    </div>`;
+      </div></div>`);
+    mode = 'battle';
+    $('#c-clarity').onclick = () => {
+      if (S.hero.mp < 3) return; S.hero.mp -= 3; B.clarity = true;
+      if (B.q.o) shuffle($$('#q-opts .opt').filter((b) => +b.dataset.i !== B.q.a && !b.disabled)).slice(0, B.q.o.length > 3 ? 2 : 1).forEach((b) => { b.disabled = true; b.classList.add('struck'); });
+      else $('#q-after').innerHTML = `<p class="hint">Clarity: the answer is between ${Math.max(0, Math.floor(B.q.a * 0.5))} and ${Math.ceil(B.q.a * 1.6) + 2}.</p>`;
+      fx('Clarity!', 'heal', 75, 40); bars();
+    };
+    $('#c-mend').onclick = () => { S.hero.mp -= 4; heal(Math.round(maxHP() * 0.4)); };
+    $('#c-tonic').onclick = () => { S.hero.tonics--; heal(Math.round(maxHP() * 0.6)); hud(); };
+    $('#c-flee').onclick = () => endBattle('flee');
+    loop(); ask();
   }
-
-  function partyBars() {
+  function heal(n) { const h = S.hero, b = h.hp; h.hp = Math.min(maxHP(), h.hp + n); fx(`+${h.hp - b}`, 'heal', 78, 45); bars(); save(); }
+  function bars() {
     const h = S.hero;
     $('#bhp').style.width = (h.hp / maxHP()) * 100 + '%'; $('#bhp-t').textContent = `HP ${h.hp}/${maxHP()}`;
     $('#bmp').style.width = (h.mp / maxMP()) * 100 + '%'; $('#bmp-t').textContent = `MP ${h.mp}/${maxMP()}`;
@@ -434,204 +472,145 @@
     $('#c-mend').disabled = !asking || h.mp < 4 || h.hp >= maxHP();
     $('#c-tonic').disabled = !asking || h.tonics < 1 || h.hp >= maxHP();
   }
-
-  function bindBattle() {
-    $('#c-clarity').onclick = () => {
-      if (S.hero.mp < 3) return; S.hero.mp -= 3; B.clarity = true;
-      if (B.q.o) {
-        const wrong = shuffle($$('#q-opts .opt').filter((b) => +b.dataset.i !== B.q.a && !b.disabled));
-        wrong.slice(0, B.q.o.length > 3 ? 2 : 1).forEach((b) => { b.disabled = true; b.classList.add('struck'); });
-      } else {
-        const a = B.q.a, lo = Math.max(0, Math.floor(a * 0.5)), hi = Math.ceil(a * 1.6) + 2;
-        $('#q-after').innerHTML = `<p class="hint">Clarity: the answer is between ${lo} and ${hi}.</p>`;
-      }
-      fxText('Clarity!', 'heal', 70, 40); partyBars();
-    };
-    $('#c-mend').onclick = () => { S.hero.mp -= 4; heal(Math.round(maxHP() * 0.4)); };
-    $('#c-tonic').onclick = () => { S.hero.tonics--; heal(Math.round(maxHP() * 0.6)); };
-    $('#c-flee').onclick = () => endBattle('flee');
-    partyBars();
-  }
-  function heal(n) { const h = S.hero, before = h.hp; h.hp = Math.min(maxHP(), h.hp + n); fxText(`+${h.hp - before}`, 'heal', 78, 45); partyBars(); hud(); save(); }
-
   function ask() {
     const q = pickQuestion(B.e.s, B.used); B.used.add(q.id);
-    B.q = q; B.phase = 'ask'; B.clarity = false; B.t0 = performance.now();
+    Object.assign(B, { q, phase: 'ask', clarity: false, t0: performance.now() });
     $('#q-subj').textContent = SUBJ[q.s].name; $('#q-subj').style.color = SUBJ[q.s].color;
-    $('#q-text').textContent = q.q;
-    $('#q-after').innerHTML = '';
-    if (q.o) {
-      const order = shuffle(q.o.map((_, i) => i));
-      $('#q-opts').innerHTML = order.map((i, k) => `<button class="opt" data-i="${i}"><kbd>${k + 1}</kbd>${esc(q.o[i])}</button>`).join('');
-      $$('#q-opts .opt').forEach((b) => b.onclick = () => answer(+b.dataset.i === q.a, b));
-    } else {
-      $('#q-opts').innerHTML = `<form id="num-form" class="num-form" autocomplete="off"><input id="num-in" inputmode="decimal" aria-label="Your answer" spellcheck="false"><button class="opt" type="submit">Answer</button></form>`;
-      $('#num-form').onsubmit = (ev) => { ev.preventDefault(); const v = parseFloat($('#num-in').value.replace(/,/g, '').replace(/[^\d.\-]/g, '')); if (isNaN(v)) return; answer(Math.abs(v - q.a) < 0.01); };
-      setTimeout(() => $('#num-in')?.focus({ preventScroll: true }), 30);
-    }
-    partyBars();
+    $('#q-text').textContent = q.q; $('#q-after').innerHTML = '';
+    answerUI(q, resolve, () => '');
+    bars();
   }
-
-  function answer(ok, btn) {
-    if (B.phase !== 'ask') return;
+  function resolve(ok) {
     B.phase = 'after';
-    const q = B.q, secs = (performance.now() - B.t0) / 1000, h = S.hero;
-    $$('#q-opts button, #q-opts input').forEach((b) => (b.disabled = true));
-    if (q.o) $$('#q-opts .opt').forEach((b) => { if (+b.dataset.i === q.a) b.classList.add('right'); });
-    if (btn && !ok) btn.classList.add('wrong');
-    const st = stat(q.s), entry = S.codex[q.id], firstTime = !entry;
+    const q = B.q, secs = (performance.now() - B.t0) / 1000, h = S.hero, st = stat(q.s), firstTime = !S.codex[q.id];
+    learn(q.id, ok);
     let msg;
     if (ok) {
       st.r++;
-      const crit = secs < 12 && !B.clarity;
-      const dmg = Math.round(B.base * (crit ? 1.5 : 1));
-      B.hp -= dmg; B.anim.lunge = 1; B.anim.flash = 1; B.anim.shake = 0.6;
-      fxText(crit ? `${dmg}!` : `${dmg}`, crit ? 'crit' : 'dmg', 28, 40);
-      if (!entry) S.codex[q.id] = { box: 1, due: addDays(today(), 1) };
+      const crit = secs < 12 && !B.clarity, dmg = Math.round(B.base * (crit ? 1.5 : 1));
+      B.hp -= dmg; Object.assign(B.anim, { lunge: 1, flash: 1, shake: 0.6 });
+      fx(crit ? `${dmg}!` : `${dmg}`, crit ? 'crit' : 'dmg', 30, 40);
       msg = `<p class="verdict good">${crit ? 'Swift strike!' : 'Correct!'} Wren deals ${dmg} damage.</p>`;
     } else {
       st.w++;
       const dmg = B.e.atk + rand(-1, 3);
-      h.hp = Math.max(0, h.hp - dmg); B.anim.hurt = 1; B.anim.shake = 1;
-      fxText(`-${dmg}`, 'hurt', 78, 45);
-      S.codex[q.id] = { box: 0, due: today() };
-      const right = q.o ? q.o[q.a] : q.a;
-      msg = `<p class="verdict bad">Not quite. The answer is <b>${esc(right)}</b>. ${esc(B.e.name)} hits you for ${dmg}.</p>`;
+      h.hp = Math.max(0, h.hp - dmg); Object.assign(B.anim, { hurt: 1, shake: 1 });
+      fx(`-${dmg}`, 'hurt', 78, 45);
+      msg = `<p class="verdict bad">Not quite. The answer is <b>${esc(q.o ? q.o[q.a] : q.a)}</b>. ${esc(B.e.name)} strikes for ${dmg}.</p>`;
     }
-    $('#q-after').innerHTML = `${msg}<div class="lore"><span>${firstTime ? 'New Codex entry' : 'Codex'}</span><p>${esc(q.lore)}</p></div>
-      <button class="cmd go" id="b-next">${B.hp <= 0 ? 'Victory!' : h.hp <= 0 ? '…' : 'Continue'} <small>Enter</small></button>`;
-    $('#b-next').onclick = () => { if (B.hp <= 0) endBattle('win'); else if (h.hp <= 0) endBattle('lose'); else ask(); };
+    $('#q-after').innerHTML = `${msg}<div class="lore">${firstTime ? '<span>New Codex entry</span>' : ''}<p>${esc(q.lore)}</p></div>
+      <button class="cmd go" id="b-next">${B.hp <= 0 ? 'Victory!' : h.hp <= 0 ? 'Continue' : 'Next question'} <small>Enter</small></button>`;
+    $('#b-next').onclick = () => (B.hp <= 0 ? endBattle('win') : h.hp <= 0 ? endBattle('lose') : ask());
     $('#b-next').focus({ preventScroll: true });
-    partyBars(); hud(); save();
+    bars(); save();
   }
-
-  function battleKey(k, e) {
-    if (!B) return;
-    if (B.phase === 'ask' && /^[1-4]$/.test(k)) { const b = $$('#q-opts .opt')[+k - 1]; if (b && !b.disabled) b.click(); }
-    if (B.phase === 'after' && (k === 'Enter' || k === ' ')) { e.preventDefault(); $('#b-next')?.click(); }
-    if (B.phase === 'result' && (k === 'Enter' || k === ' ')) { e.preventDefault(); $('#b-done')?.click(); }
-  }
-
-  function fxText(t, cls, xPct, yPct) {
-    const fx = $('#fx'); if (!fx) return;
-    const s = document.createElement('span'); s.className = 'fx ' + cls; s.textContent = t;
-    s.style.left = xPct + '%'; s.style.top = yPct + '%'; fx.appendChild(s); setTimeout(() => s.remove(), 1100);
-  }
-
-  function battleLoop() {
+  function fx(t, cls, x, y) { const f = $('#fx'); if (!f) return; const el = document.createElement('span'); el.className = 'fx ' + cls; el.textContent = t; el.style.left = x + '%'; el.style.top = y + '%'; f.appendChild(el); setTimeout(() => el.remove(), 1100); }
+  function loop() {
     const c = $('#bstage'); if (!c || !B) return;
     const g = c.getContext('2d'), e = B.e, an = B.anim, t = performance.now() / 1000;
     g.imageSmoothingEnabled = false;
     const col = SUBJ[e.s] ? SUBJ[e.s].color : '#b18cff';
-    const bg = g.createLinearGradient(0, 0, 0, 220); bg.addColorStop(0, '#0b0f1c'); bg.addColorStop(1, LL.shade(col, -0.78));
+    const bg = g.createLinearGradient(0, 0, 0, 220); bg.addColorStop(0, '#120c0a'); bg.addColorStop(1, LL.shade(col, -0.75));
     g.fillStyle = bg; g.fillRect(0, 0, 480, 220);
-    for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(255,255,255,${0.15 + 0.15 * Math.sin(t * 2 + i)})`; g.fillRect((i * 97) % 480, (i * 53) % 120, 2, 2); }
-    g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(240, 188, 230, 30, 0, 0, 7); g.fill();
+    if (LL.IMG.tavern) { g.globalAlpha = 0.25; g.drawImage(LL.IMG.tavern, 120, 420, 800, 380, 0, 0, 480, 228); g.globalAlpha = 1; }
+    for (let i = 0; i < 30; i++) { g.fillStyle = `rgba(255,220,160,${0.12 + 0.12 * Math.sin(t * 2 + i)})`; g.fillRect((i * 97) % 480, (i * 53) % 140, 2, 2); }
+    g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(240, 190, 230, 28, 0, 0, 7); g.fill();
     const sx = (Math.random() - 0.5) * 10 * an.shake;
-    // enemy
     const spr = LL.sprite(e.sprite, e.pal), sc = e.boss ? 9 : 7;
-    const ex = 150 + sx - an.hurt * 0 + (an.hurt > 0.5 ? (1 - an.hurt) * 60 : an.hurt * 60) * 0, ey = 190 + Math.sin(t * 2.5) * 4;
     const lungeE = an.hurt > 0 ? Math.sin(an.hurt * Math.PI) * 60 : 0;
-    g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(150 + lungeE, 190, 50, 10, 0, 0, 7); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(140 + lungeE, 192, 50, 10, 0, 0, 7); g.fill();
     if (B.hp <= 0 && B.phase !== 'ask') g.globalAlpha = Math.max(0, 1 - (B.fade = (B.fade || 0) + 0.03));
     if (an.flash > 0.5) g.filter = 'brightness(3)';
-    g.drawImage(spr, ex + lungeE - spr.width * sc / 2, ey - spr.height * sc, spr.width * sc, spr.height * sc);
+    g.drawImage(spr, 140 + lungeE + sx - spr.width * sc / 2, 192 + Math.sin(t * 2.5) * 4 - spr.height * sc, spr.width * sc, spr.height * sc);
     g.filter = 'none'; g.globalAlpha = 1;
-    // hero
-    const hi = LL.IMG.heroBattle, hs = 1.5;
-    const lunge = an.lunge > 0 ? Math.sin(an.lunge * Math.PI) * 90 : 0;
-    const hx = 360 - lunge, hy = 196 + Math.sin(t * 2) * 2;
-    if (an.hurt > 0.5) g.filter = 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)';
-    g.save(); g.translate(hx + (an.hurt > 0 ? sx : 0), hy); g.scale(-1, 1);
-    g.drawImage(hi, -hi.width * hs / 2, -hi.height * hs, hi.width * hs, hi.height * hs); g.restore(); g.filter = 'none';
-    // swift bar
-    const sw = $('#swift');
-    if (sw) sw.style.width = B.phase === 'ask' && !B.clarity ? Math.max(0, 100 - ((performance.now() - B.t0) / 12000) * 100) + '%' : '0%';
+    const hi = LL.IMG.heroBattle, hs = 1.5, lunge = an.lunge > 0 ? Math.sin(an.lunge * Math.PI) * 90 : 0;
+    if (hi) {
+      if (an.hurt > 0.5) g.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(5)';
+      g.save(); g.translate(370 - lunge + (an.hurt > 0 ? sx : 0), 196 + Math.sin(t * 2) * 2); g.scale(-1, 1);
+      g.drawImage(hi, -hi.width * hs / 2, -hi.height * hs, hi.width * hs, hi.height * hs); g.restore(); g.filter = 'none';
+    }
+    const sw = $('#swift'); if (sw) sw.style.width = B.phase === 'ask' && !B.clarity ? Math.max(0, 100 - ((performance.now() - B.t0) / 12000) * 100) + '%' : '0%';
     ['shake', 'flash', 'lunge', 'hurt'].forEach((k) => (an[k] = Math.max(0, an[k] - 0.035)));
-    B.raf = requestAnimationFrame(battleLoop);
+    B.raf = requestAnimationFrame(loop);
   }
-
   function endBattle(result) {
     cancelAnimationFrame(B.raf);
-    const { actor, e } = B; const h = S.hero;
-    if (result === 'flee') { actor.stun = 3; G.hero.inv = 2; G.hero.blink = true; B = null; closeWin(); toast('You slip away.'); return; }
-    if (result === 'lose') {
-      B = null; closeWin();
-      h.hp = maxHP(); h.mp = maxMP();
-      say([[null, 'The Murk swallows your thoughts…'], ['Marla', 'Easy now, Wren. You’re safe at the Gilded Lantern. Rest, then try again. Every wrong answer teaches you something.']], () => {});
-      enterMap('tavern'); G.mode = 'dialog';
-      return;
+    const { e, isTrial } = B, h = S.hero;
+    if (result !== 'win') {
+      B = null; h.hp = maxHP(); h.mp = maxMP(); save(); closeWin();
+      return say(result === 'lose'
+        ? [['Hedda', 'Enough. The shadow fades. Do not hang your head, Wren: every answer you missed is now in your Codex, waiting for Recall.'], ['Hedda', 'Revise, then try again. You may retake a Trial as often as you need.']]
+        : [['Hedda', 'Wise to step back and regroup. Come back when you are ready.']]);
     }
-    // win
     B.phase = 'result';
-    actor.dead = true;
-    let lines = [`Gained ${e.xp} experience.`];
-    h.xp += e.xp;
-    const drop = !e.boss && Math.random() < 0.25;
-    if (drop) { h.tonics++; lines.push('Found a Tonic!'); }
-    while (h.xp >= xpNext()) { h.xp -= xpNext(); h.lv++; h.hp = maxHP(); h.mp = maxMP(); lines.push(`Wren reached level ${h.lv}! HP and MP fully restored.`); }
-    save(); hud();
+    const lines = [`Gained ${e.xp} experience.`];
+    if (!e.boss && Math.random() < 0.3) { h.tonics++; lines.push('Hedda hands you a Tonic.'); }
+    const lvl = gainXP(e.xp); if (lvl) lines.push(lvl);
     $('.bwin').innerHTML = `<h2 class="victory">Victory</h2>${lines.map((l) => `<p>${esc(l)}</p>`).join('')}<button class="cmd go" id="b-done">Continue <small>Enter</small></button>`;
     $('#b-done').focus({ preventScroll: true });
     $('#b-done').onclick = () => {
-      B = null; closeWin(); G.hero.inv = 1; G.hero.blink = true;
-      if (e.boss) afterBoss(actor, e);
+      B = null; h.hp = maxHP(); h.mp = maxMP(); save(); closeWin();
+      if (!isTrial) return;
+      if (e.final) { S.ended = true; save(); hud(); return say([[e.name, e.defeat], ...LL.STORY.ending], () => go(hub)); }
+      const s = e.s, first = !S.lanterns[s];
+      S.lanterns[s] = true; save(); hud();
+      const after = [[e.name, e.defeat]];
+      if (first) { after.push(...LL.STORY.lanternLit(SUBJ[s].lantern)); if (litCount() === 4) after.push(...LL.STORY.allLit); }
+      say(after, () => go(hub));
     };
   }
 
-  function afterBoss(actor, e) {
-    G.actors = G.actors.filter((a) => a !== actor);
-    if (e.final) {
-      S.ended = true; save(); hud();
-      return say([[e.name, e.defeat], ...LL.STORY.ending], () => banner('The End'));
-    }
-    const s = G.map.def.lantern;
-    S.lanterns[s] = true; save(); hud();
-    const lines = [[e.name, e.defeat], ...LL.STORY.lanternLit(SUBJ[s].lantern)];
-    if (litCount() === 4) lines.push(...LL.STORY.allLit);
-    say(lines);
-  }
-
-  /* ───────── seals (mechanism puzzles) ───────── */
+  /* ───────── PUZZLES ───────── */
   const PUZZLES = {
-    jugs: { title: 'Alchemical Lock', prompt: 'The lock wants exactly 4 measures of quicksilver in the large flask. You have a 5-measure flask and a 3-measure flask, with no markings.',
-      hints: ['Fill the 5 and pour into the 3. What is left in the 5?', 'Keep that 2 in the 3-flask, then fill the 5 again.', 'Top up the 3-flask from the full 5. It only takes 1.'] },
-    hanoi: { title: 'Tower Seal', prompt: 'Move the whole tower of 4 disks from the left post to the right post. Only the top disk can move, and a disk may never sit on a smaller one.',
-      hints: ['To move the biggest disk, the other three must be on the middle post.', 'Moving 3 disks works the same way: first move the top 2 aside.', 'The smallest disk moves every other turn, always in the same direction around the posts.'] },
-    river: { title: 'Ferry Post', prompt: 'Ferry a fox, a goose and a sack of grain across the river. The boat holds you and one passenger. Left alone, the fox eats the goose, and the goose eats the grain.',
-      hints: ['There is only one safe first move.', 'Nothing stops you bringing a passenger back again.', 'Take the goose first. Later, bring the goose back to swap it for something else.'] },
-    lights: { title: 'Lantern Ring', prompt: 'Light every lantern in the ring. Touching a lantern switches it and the lanterns directly above, below, left and right of it.',
-      hints: ['Pressing a lantern twice undoes it, so each needs pressing at most once.', 'The order of presses doesn’t matter, only which ones you press.', 'Press the top-left, centre and bottom-right lanterns once each.'] },
-    magic: { title: 'Square of Fifteen', prompt: 'Fill the grid with the numbers 1 to 9, each used once, so every row, column and diagonal adds to 15.',
-      hints: ['Opposite cells through the centre must add to 10.', 'Even numbers go in the corners, odd numbers on the edges.', 'One answer: 4 9 2 / 3 5 7 / 8 1 6.'] },
-    lock: { title: 'Null’s Lock', prompt: 'A 3-digit lock. Scratched beside it:\n\n6 8 2   one digit right, in the right place\n6 1 4   one digit right, wrong place\n2 0 6   two digits right, wrong places\n7 3 8   nothing is right\n7 8 0   one digit right, wrong place',
-      hints: ['7, 3 and 8 are not in the code.', 'From 7 8 0, the 0 is in the code but not last. From 6 8 2, either 6 or 2 is right and in place.', '6 cannot be first (614 says wrong place), so 2 is last. Then 0 is first, and 4 fills the middle.'] }
+    jugs: { title: 'The Alchemist’s Flasks', tag: 'Measure exactly 4 with a 5 and a 3', prompt: 'Hedda sets two empty flasks on the bar: one holds 5 measures, the other 3. Neither has markings. “Pour me exactly 4 measures in the large flask.”',
+      hints: ['Fill the 5 and pour into the 3. What is left in the 5?', 'Keep that 2 in the small flask, then fill the 5 again.', 'Top up the small flask from the full 5. It only takes 1.'],
+      lesson: 'Reusing what is left over, and working backwards from the goal, solves many measuring and planning problems.' },
+    hanoi: { title: 'The Tower of Ages', tag: 'Move a 4-disk tower in 15 moves', prompt: '“Move the whole tower from the left post to the right post. Only the top disk may move, and a disk may never sit on a smaller one.”',
+      hints: ['To move the biggest disk, the other three must be on the middle post.', 'Moving 3 disks works the same way: first move the top 2 aside.', 'The smallest disk moves every other turn, always in the same direction around the posts.'],
+      lesson: 'This is recursion: solve a big problem by solving a smaller copy of it. A tower of n disks needs 2ⁿ − 1 moves. Édouard Lucas invented the puzzle in 1883.' },
+    river: { title: 'The Ferry Problem', tag: 'Fox, goose and grain across a river', prompt: '“Ferry a fox, a goose and a sack of grain across the river. The boat holds you and one passenger. Left alone, the fox eats the goose, and the goose eats the grain.”',
+      hints: ['There is only one safe first move.', 'Nothing stops you bringing a passenger back again.', 'Take the goose first. Later, bring the goose back to swap it for something else.'],
+      lesson: 'Sometimes progress means stepping backwards. This puzzle appears in a collection from around 800 CE attributed to Alcuin of York.' },
+    lights: { title: 'The Lantern Ring', tag: 'Light all nine lanterns', prompt: '“Light every lantern. Touching one switches it and the lanterns directly above, below, left and right of it.”',
+      hints: ['Pressing a lantern twice undoes it, so each needs pressing at most once.', 'The order of presses doesn’t matter, only which ones you press.', 'Press the top-left, centre and bottom-right lanterns once each.'],
+      lesson: 'When order does not matter and doing something twice undoes it, the only question is which moves to make.' },
+    magic: { title: 'The Square of Fifteen', tag: 'Every line adds to 15', prompt: '“Fill the grid with the numbers 1 to 9, each used once, so that every row, column and diagonal adds to 15.”',
+      hints: ['Opposite cells through the centre must add to 10.', 'Even numbers go in the corners, odd numbers on the edges.', 'One answer: 4 9 2 / 3 5 7 / 8 1 6.'],
+      lesson: 'This is the Lo Shu square of ancient Chinese legend. Every 3×3 magic square is a rotation or reflection of it.' },
+    lock: { title: 'Null’s Lock', tag: 'Crack a 3-digit code from clues', prompt: 'A 3-digit lock taken from Null’s tower. Scratched beside it:\n\n6 8 2   one digit right, in the right place\n6 1 4   one digit right, wrong place\n2 0 6   two digits right, wrong places\n7 3 8   nothing is right\n7 8 0   one digit right, wrong place',
+      hints: ['7, 3 and 8 are not in the code.', 'From 7 8 0, the 0 is in the code but not last. From 6 8 2, either 6 or 2 is right and in place.', '6 cannot be first (614 says wrong place), so 2 is last. Then 0 is first, and 4 fills the middle.'],
+      lesson: 'Start with the clue that rules out the most. Each elimination shrinks the search far faster than guessing.' }
   };
 
-  function openPuzzle(seal) {
-    const P = PUZZLES[seal.puzzle];
-    G.mode = 'menu';
-    let hints = 0;
+  function openPuzzle(key) {
+    const P = PUZZLES[key]; let hints = 0;
     openWin(`<div class="win puzzle-win"><div class="pw-head"><h2>${esc(P.title)}</h2><button class="cmd small" data-close>Leave</button></div>
-      <p class="pw-prompt">${esc(P.prompt)}</p><div id="play" class="play"></div><p id="pfb" class="pfb" role="status"></p>
-      <div class="pw-foot"><button class="cmd small" id="phint">Ask Pip for a hint</button></div><div id="phints"></div></div>`);
+      <div class="pw-intro"><img src="${WIZ()}" alt=""><p class="pw-prompt">${esc(P.prompt)}</p></div>
+      <div id="play" class="play"></div><p id="pfb" class="pfb" role="status"></p>
+      <div class="pw-foot"><button class="cmd small" id="phint">Ask Hedda for a hint (3 left)</button></div><div id="phints"></div></div>`);
     $('[data-close]').onclick = closeWin;
     $('#phint').onclick = () => {
       if (hints >= 3) return; hints++;
-      $('#phints').innerHTML = P.hints.slice(0, hints).map((h, i) => `<p class="hint"><b>Pip:</b> ${esc(h)}</p>`).join('');
-      if (hints >= 3) $('#phint').disabled = true;
+      $('#phints').innerHTML = P.hints.slice(0, hints).map((h) => `<p class="hint"><b>Hedda:</b> ${esc(h)}</p>`).join('');
+      $('#phint').textContent = hints >= 3 ? 'No more hints' : `Ask Hedda for a hint (${3 - hints} left)`; $('#phint').disabled = hints >= 3;
     };
     const ctx = {
       play: $('#play'),
       feedback: (t, cls = '') => { $('#pfb').textContent = t; $('#pfb').className = 'pfb ' + cls; },
       solve: (msg) => {
-        S.seals[seal.id || G.map.id] = true; S.hero.xp += 30;
-        while (S.hero.xp >= xpNext()) { S.hero.xp -= xpNext(); S.hero.lv++; S.hero.hp = maxHP(); S.hero.mp = maxMP(); }
+        const first = !S.puzzles[key]; S.puzzles[key] = true;
+        let lvl = ''; if (first) { S.hero.tonics++; lvl = gainXP(30); }
         save();
-        setTimeout(() => { closeWin(); buildActors(); say([[null, `${msg ? msg + ' ' : ''}The ${P.title} dissolves into light. (+30 XP)`]]); }, 700);
+        setTimeout(() => {
+          openWin(`<div class="win puzzle-win"><h2>Solved!</h2>${msg ? `<p><b>${esc(msg)}</b></p>` : ''}
+            <div class="pw-intro"><img src="${WIZ()}" alt=""><p>${esc(P.lesson)}</p></div>
+            <p class="muted">${first ? `+30 XP and a Tonic${lvl ? ' · ' + lvl : ''}` : 'Solved again, for the joy of it.'}</p>
+            <div class="pw-foot"><button class="cmd go" data-close>Continue</button></div></div>`);
+          $('[data-close]').onclick = closeWin; $('[data-close]').focus();
+        }, 600);
       }
     };
-    ({ jugs: playJugs, hanoi: playHanoi, river: playRiver, lights: playLights, magic: playMagic, lock: playLock })[seal.puzzle](ctx);
+    ({ jugs: playJugs, hanoi: playHanoi, river: playRiver, lights: playLights, magic: playMagic, lock: playLock })[key](ctx);
   }
 
   function playHanoi({ play, solve, feedback }) {
@@ -648,18 +627,18 @@
       const d = pegs[sel].at(-1), top = pegs[i].at(-1);
       if (top !== undefined && top < d) { feedback('A disk can’t sit on a smaller one.', 'bad'); sel = null; return draw(); }
       feedback(''); pegs[i].push(pegs[sel].pop()); sel = null; moves++; draw();
-      if (pegs[2].length === n) solve(moves === min ? 'A perfect 15 moves!' : `Done in ${moves} moves.`);
+      if (pegs[2].length === n) solve(moves === min ? 'A perfect 15 moves!' : `Done in ${moves} moves. The minimum is 15.`);
     };
     reset();
   }
   function playLights({ play, solve }) {
-    const N = 3, presses = [0, 4, 8]; let grid, count;
+    const N = 3; let grid, count;
     const tog = (gr, i) => { const r = Math.floor(i / N), c = i % N; [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([a, b]) => { const rr = r + a, cc = c + b; if (rr >= 0 && rr < N && cc >= 0 && cc < N) gr[rr * N + cc] = !gr[rr * N + cc]; }); };
-    const reset = () => { grid = Array(9).fill(true); presses.forEach((i) => tog(grid, i)); count = 0; draw(); };
+    const reset = () => { grid = Array(9).fill(true); [0, 4, 8].forEach((i) => tog(grid, i)); count = 0; draw(); };
     const draw = () => {
       play.innerHTML = `<div class="lights">${grid.map((on, i) => `<button class="lamp ${on ? 'on' : ''}" data-i="${i}" aria-label="Lantern ${i + 1}, ${on ? 'lit' : 'dark'}"></button>`).join('')}</div>
         <div class="pbar"><span>Touches: ${count} · Lit ${grid.filter(Boolean).length}/9</span><button class="cmd small" id="reset">Start over</button></div>`;
-      $$('.lamp', play).forEach((b) => b.onclick = () => { tog(grid, +b.dataset.i); count++; draw(); if (grid.every(Boolean)) solve(); });
+      $$('.lamp', play).forEach((b) => b.onclick = () => { tog(grid, +b.dataset.i); count++; draw(); if (grid.every(Boolean)) solve(count <= 3 ? 'Lit in 3 touches, the fewest possible.' : `Lit in ${count} touches. It can be done in 3.`); });
       $('#reset').onclick = reset;
     };
     reset();
@@ -674,7 +653,7 @@
       play.innerHTML = `<div class="river"><div class="bank"><small>Near bank</small>${bank('L')}</div>
         <div class="water"><div class="boat ${side.you === 'L' ? 'l' : 'r'}"><span class="tok you">Wren</span>${pas ? tok(pas) : '<span class="tok empty">empty</span>'}</div></div>
         <div class="bank"><small>Far bank</small>${bank('R')}</div></div>
-        <div class="pbar"><span>Crossings: ${trips}</span><span class="row"><button class="cmd small go" id="cross">Cross</button><button class="cmd small" id="reset">Start over</button></span></div>`;
+        <div class="pbar"><span>Crossings: ${trips} · Tap a passenger, then Cross</span><span class="row"><button class="cmd small go" id="cross">Cross</button><button class="cmd small" id="reset">Start over</button></span></div>`;
       $$('.tok[data-k]', play).forEach((b) => b.onclick = () => { pas = pas === b.dataset.k ? null : b.dataset.k; draw(); });
       $('#cross').onclick = cross; $('#reset').onclick = reset;
     };
@@ -684,7 +663,7 @@
       if (alone('fox') && alone('goose')) { feedback('The fox ate the goose! Everyone is back at the start.', 'bad'); return reset(); }
       if (alone('goose') && alone('grain')) { feedback('The goose ate the grain! Everyone is back at the start.', 'bad'); return reset(); }
       feedback(''); draw();
-      if (['you', 'fox', 'goose', 'grain'].every((k) => side[k] === 'R')) solve(trips === 7 ? 'Seven crossings, the minimum.' : '');
+      if (['you', 'fox', 'goose', 'grain'].every((k) => side[k] === 'R')) solve(trips === 7 ? 'Seven crossings, the minimum.' : `Done in ${trips} crossings. The minimum is 7.`);
     };
     reset();
   }
@@ -700,7 +679,7 @@
     const act = (a) => {
       if (a === 'fa') A = 5; if (a === 'fb') Bq = 3; if (a === 'ea') A = 0; if (a === 'eb') Bq = 0;
       if (a === 'ab') { const t = Math.min(A, 3 - Bq); A -= t; Bq += t; } if (a === 'ba') { const t = Math.min(Bq, 5 - A); Bq -= t; A += t; }
-      steps++; draw(); if (A === 4) solve(steps <= 6 ? 'Six steps, the fewest possible.' : '');
+      steps++; draw(); if (A === 4) solve(steps <= 6 ? 'Six steps, the fewest possible.' : `Done in ${steps} steps. It can be done in 6.`);
     };
     draw();
   }
@@ -720,105 +699,85 @@
   }
   function playLock({ play, solve, feedback }) {
     play.innerHTML = `<form class="num-form" id="lockf" autocomplete="off"><input id="lock-in" inputmode="numeric" maxlength="3" aria-label="Code" spellcheck="false"><button class="cmd go" type="submit">Try the code</button></form>`;
-    $('#lockf').onsubmit = (e) => { e.preventDefault(); const v = $('#lock-in').value.replace(/\D/g, ''); v === '042' ? solve() : feedback('The lock doesn’t budge.', 'bad'); };
+    $('#lockf').onsubmit = (e) => { e.preventDefault(); $('#lock-in').value.replace(/\D/g, '') === '042' ? solve() : feedback('The lock doesn’t budge.', 'bad'); };
     setTimeout(() => $('#lock-in').focus(), 30);
   }
 
-  /* ───────── riddles ───────── */
-  function openRiddle(n) {
-    const r = LL.RIDDLES[n.riddle];
-    G.mode = 'menu';
-    openWin(`<div class="win puzzle-win"><div class="pw-head"><h2>${esc(n.name)}’s riddle</h2><button class="cmd small" data-close>Maybe later</button></div>
+  /* ───────── RIDDLE BOARD ───────── */
+  function riddleBoard() {
+    const keys = Object.keys(LL.RIDDLES);
+    app.innerHTML = `<div class="screen" style="--c:#f0b44c">
+      <button class="back" id="back">← The study</button>
+      <header class="sub-head"><div><p class="eyebrow">Pinned up by the tavern regulars</p><h1>Riddle Board</h1></div></header>
+      ${wizardBox('The regulars pin riddles here to test each other. They look simple. They are not. Each one you crack earns a Tonic.', null)}
+      <div class="riddles">${keys.map((k, i) => `<button class="riddle win ${S.riddles[k] ? 'is-done' : ''}" data-k="${k}">
+          <span class="step-kind">No. ${i + 1} · from ${LL.RIDDLE_GIVERS[k]}</span><span class="riddle-q">${esc(LL.RIDDLES[k].q)}</span><span class="step-note">${S.riddles[k] ? 'Solved' : 'Unsolved'}</span></button>`).join('')}</div></div>`;
+    $('#back').onclick = () => go(hub);
+    $$('.riddle').forEach((b) => b.onclick = () => openRiddle(b.dataset.k));
+  }
+  function openRiddle(k) {
+    const r = LL.RIDDLES[k], who = LL.RIDDLE_GIVERS[k];
+    openWin(`<div class="win puzzle-win"><div class="pw-head"><h2>${esc(who)}’s riddle</h2><button class="cmd small" data-close>Back</button></div>
       <p class="pw-prompt">${esc(r.q)}</p>
       <form class="num-form" id="rf" autocomplete="off"><input id="r-in" aria-label="Your answer" spellcheck="false"><button class="cmd go" type="submit">Answer</button></form>
-      <p id="pfb" class="pfb" role="status"></p><div class="pw-foot"><button class="cmd small" id="rhint">Ask Pip for a hint</button></div><div id="phints"></div></div>`);
+      <p id="pfb" class="pfb" role="status"></p><div class="pw-foot"><button class="cmd small" id="rhint">Ask Hedda for a hint</button></div><div id="phints"></div></div>`);
     $('[data-close]').onclick = closeWin;
-    $('#rhint').onclick = () => { $('#phints').innerHTML = `<p class="hint"><b>Pip:</b> ${esc(r.hint)}</p>`; };
+    $('#rhint').onclick = () => { $('#phints').innerHTML = `<p class="hint"><b>Hedda:</b> ${esc(r.hint)}</p>`; };
     $('#rf').onsubmit = (e) => {
       e.preventDefault();
       const v = $('#r-in').value.toLowerCase().replace(/[\s.,'"!?-]/g, '').replace(/^(the|a)/, '');
       if (r.a.includes(v)) {
-        S.riddles[n.riddle] = true; S.hero.tonics++; S.hero.xp += 20;
-        while (S.hero.xp >= xpNext()) { S.hero.xp -= xpNext(); S.hero.lv++; S.hero.hp = maxHP(); S.hero.mp = maxMP(); }
-        save(); closeWin(); say([[n.name, `Well done! ${r.lore}`], [null, 'Received a Tonic and 20 experience.']]);
+        const first = !S.riddles[k]; S.riddles[k] = true;
+        let lvl = ''; if (first) { S.hero.tonics++; lvl = gainXP(20); }
+        save();
+        openWin(`<div class="win puzzle-win"><h2>Solved!</h2><div class="pw-intro"><img src="${WIZ()}" alt=""><p>${esc(r.lore)}</p></div>
+          <p class="muted">${first ? `+20 XP and a Tonic${lvl ? ' · ' + lvl : ''}` : 'Solved again.'}</p><div class="pw-foot"><button class="cmd go" data-close>Continue</button></div></div>`);
+        $('[data-close]').onclick = closeWin; $('[data-close]').focus();
       } else { $('#pfb').textContent = 'Not quite. Think it over.'; $('#pfb').className = 'pfb bad'; $('#r-in').select(); }
     };
     setTimeout(() => $('#r-in').focus(), 30);
   }
 
-  /* ───────── inn ───────── */
-  function dueEntries() { const t = today(); return Object.keys(S.codex).filter((id) => QBY[id] && S.codex[id].due <= t); }
-  function innMenu() {
-    const due = dueEntries().length;
-    choice('Marla · The Gilded Lantern', [
-      { label: 'Rest', note: 'Restore HP and MP', fn: () => { S.hero.hp = maxHP(); S.hero.mp = maxMP(); save(); hud(); say([['Marla', 'A warm bowl of stew and a soft bed. You feel restored.']]); } },
-      { label: 'Recall', note: due ? `${due} Codex entries ready for review` : 'Practise what you have learned', disabled: !Object.keys(S.codex).length, fn: () => review(due > 0) },
-      { label: 'Training', note: 'Quick mind drills', fn: trainingMenu },
-      { label: 'Ask about the journey', fn: () => say(journeyHint()) },
-      { label: 'Leave', fn: () => {} }
-    ]);
-  }
-  function journeyHint() {
-    const left = LANTERN_SUBJ.filter((s) => !S.lanterns[s]);
-    if (S.ended) return [['Marla', 'Every lantern burns. Keep your Codex fresh with Recall, and come and train anytime.']];
-    if (!left.length) return [['Marla', 'All four Lanterns are lit! The black gate in the north-east of the village is open. Null is waiting.']];
-    const where = { sci: 'the Brass Observatory, north', his: 'the Sunken Archive, east', geo: 'the Wayfarer Wilds, west', phi: 'the Grove of Whys, south' };
-    return [['Marla', `${4 - left.length} of 4 Lanterns are lit. Still dark: ${left.map((s) => where[s]).join('; ')}.`], ['Marla', 'If the creatures there are too much, come back, rest, and try again. You learn a little every time.']];
-  }
-
+  /* ───────── RECALL (spaced repetition) ───────── */
   function review(due) {
     const ids = due ? shuffle(dueEntries()).slice(0, 8) : shuffle(Object.keys(S.codex).filter((id) => QBY[id])).slice(0, 5);
+    if (!ids.length) return say([['Hedda', 'Nothing to recall yet. Take a lesson first.']]);
     let i = 0, right = 0;
-    G.mode = 'menu';
     const step = () => {
       if (i >= ids.length) {
-        S.hero.xp += right * 4; while (S.hero.xp >= xpNext()) { S.hero.xp -= xpNext(); S.hero.lv++; S.hero.hp = maxHP(); S.hero.mp = maxMP(); }
-        save(); hud();
-        openWin(`<div class="win puzzle-win"><h2>Recall complete</h2><p>${right} of ${ids.length} remembered. +${right * 4} XP.</p>
-          <p class="muted">${due ? 'Entries you got right will come back after a longer gap. Missed ones return tomorrow.' : 'Practice rounds don’t change your review schedule.'}</p>
-          <div class="pw-foot"><button class="cmd go" data-close>Done</button></div></div>`);
+        const lvl = gainXP(right * 4);
+        openWin(`<div class="win puzzle-win"><h2>Recall complete</h2><div class="pw-intro"><img src="${WIZ()}" alt=""><p>${right} of ${ids.length} remembered. ${due ? 'Facts you remembered come back after a longer gap: 1, 2, 4, 8, then 16 days. Missed ones return tomorrow.' : 'Practice rounds don’t change your review schedule.'}</p></div>
+          <p class="muted">+${right * 4} XP${lvl ? ' · ' + lvl : ''}</p><div class="pw-foot"><button class="cmd go" data-close>Done</button></div></div>`);
         $('[data-close]').onclick = closeWin; $('[data-close]').focus();
         return;
       }
       const q = QBY[ids[i]];
-      openWin(`<div class="win puzzle-win"><div class="pw-head"><h2>Recall ${i + 1} / ${ids.length}</h2><button class="cmd small" data-close>Stop</button></div>
-        <span class="q-subj" style="color:${SUBJ[q.s].color}">${SUBJ[q.s].name}</span><p class="pw-prompt">${esc(q.q)}</p><div id="q-opts" class="q-opts"></div><div id="q-after" class="q-after"></div></div>`);
+      openWin(`<div class="win puzzle-win"><div class="pw-head"><h2>Recall · ${i + 1} of ${ids.length}</h2><button class="cmd small" data-close>Stop</button></div>
+        <span class="q-subj" style="color:${SUBJ[q.s].color}">${SUBJ[q.s].name}</span><p class="q-text">${esc(q.q)}</p><div id="q-opts" class="q-opts"></div><div id="q-after" class="q-after"></div></div>`);
       $('[data-close]').onclick = closeWin;
-      const done = (ok, btn) => {
-        $$('#q-opts button, #q-opts input').forEach((b) => (b.disabled = true));
-        if (q.o) $$('#q-opts .opt').forEach((b) => { if (+b.dataset.i === q.a) b.classList.add('right'); });
-        if (btn && !ok) btn.classList.add('wrong');
+      answerUI(q, (ok) => {
         if (ok) right++;
         if (due) { const e = S.codex[q.id]; e.box = ok ? Math.min(5, e.box + 1) : 0; e.due = addDays(today(), ok ? LEITNER[e.box] : 1); save(); }
-        $('#q-after').innerHTML = `<p class="verdict ${ok ? 'good' : 'bad'}">${ok ? 'Remembered!' : `The answer is ${esc(q.o ? q.o[q.a] : q.a)}.`}</p><div class="lore"><p>${esc(q.lore)}</p></div><button class="cmd go" id="rn">Next</button>`;
+        $('#q-after').insertAdjacentHTML('beforeend', `<button class="cmd go" id="rn">${i === ids.length - 1 ? 'Finish' : 'Next'} <small>Enter</small></button>`);
         $('#rn').onclick = () => { i++; step(); }; $('#rn').focus();
-      };
-      if (q.o) {
-        $('#q-opts').innerHTML = shuffle(q.o.map((_, k) => k)).map((k, j) => `<button class="opt" data-i="${k}"><kbd>${j + 1}</kbd>${esc(q.o[k])}</button>`).join('');
-        $$('#q-opts .opt').forEach((b) => b.onclick = () => done(+b.dataset.i === q.a, b));
-      } else {
-        $('#q-opts').innerHTML = `<form id="nf" class="num-form" autocomplete="off"><input id="nin" inputmode="decimal" aria-label="Answer"><button class="opt" type="submit">Answer</button></form>`;
-        $('#nf').onsubmit = (e) => { e.preventDefault(); const v = parseFloat($('#nin').value.replace(/[^\d.\-]/g, '')); if (!isNaN(v)) done(Math.abs(v - q.a) < 0.01); };
-        $('#nin').focus();
-      }
+      }, (ok) => ok ? 'Remembered!' : 'Forgotten. It will come back tomorrow.');
     };
     step();
   }
 
-  /* ───────── training drills ───────── */
+  /* ───────── TRAINING ───────── */
   function trainingMenu() {
     choice('Training', [
       { label: 'Quick Maths', note: `60 seconds of mental arithmetic · best ${S.gym.math}`, fn: drillMath },
       { label: 'Number Patterns', note: `Find the rule in 6 sequences · best ${S.gym.pattern}/6`, fn: drillPattern },
       { label: 'Digit Span', note: `Working memory · best ${S.gym.span} digits`, fn: drillSpan },
-      { label: 'Back', fn: innMenu }
+      { label: 'Back', fn: () => {} }
     ]);
   }
   function drillDone(key, score, text) {
     const rec = score > S.gym[key]; if (rec) S.gym[key] = score;
-    S.hero.xp += score * 2; while (S.hero.xp >= xpNext()) { S.hero.xp -= xpNext(); S.hero.lv++; S.hero.hp = maxHP(); S.hero.mp = maxMP(); }
-    save(); hud();
-    openWin(`<div class="win puzzle-win"><h2>${esc(text)}</h2><p>${rec && score ? 'A new personal best!' : `Your best is ${S.gym[key]}.`} +${score * 2} XP.</p>
+    const lvl = gainXP(score * 2);
+    openWin(`<div class="win puzzle-win"><h2>${esc(text)}</h2><p>${rec && score ? 'A new personal best!' : `Your best is ${S.gym[key]}.`} +${score * 2} XP${lvl ? ' · ' + lvl : ''}</p>
       <div class="pw-foot"><button class="cmd go" id="again">Again</button><button class="cmd" data-close>Done</button></div></div>`);
     $('[data-close]').onclick = closeWin; $('#again').onclick = () => ({ math: drillMath, pattern: drillPattern, span: drillSpan })[key]();
   }
@@ -843,7 +802,7 @@
       $('#pfb').textContent = ok ? 'Correct' : `It was ${p.a}`; $('#pfb').className = 'pfb ' + (ok ? 'good' : 'bad');
       p = mathQ(L); $('#dq').textContent = `${p.q} = ?`; $('#ds').textContent = score; $('#din').value = '';
     };
-    const timer = setInterval(() => { left--; if ($('#dt')) $('#dt').textContent = left; else return clearInterval(timer); if (left <= 0) { clearInterval(timer); drillDone('math', score, `${score} correct in 60 seconds`); } }, 1000);
+    const timer = setInterval(() => { left--; if (!$('#dt')) return clearInterval(timer); $('#dt').textContent = left; if (left <= 0) { clearInterval(timer); drillDone('math', score, `${score} correct in 60 seconds`); } }, 1000);
   }
   function drillPattern() {
     const gens = [
@@ -875,54 +834,49 @@
       const d = Array.from({ length: len }, () => rand(0, 9));
       openWin(`<div class="win puzzle-win drill"><div class="pw-head"><h2>Digit Span</h2><span class="muted">Length <b>${len}</b></span></div><div class="big mono" id="dd">Watch…</div><div id="da"></div></div>`);
       let k = 0;
-      const show = () => {
+      const showD = () => {
         const el = $('#dd'); if (!el) return;
-        if (k >= d.length) { el.textContent = 'Type the digits in order'; $('#da').innerHTML = `<form class="num-form" id="df" autocomplete="off"><input id="din" inputmode="numeric" aria-label="Digits"><button class="cmd go" type="submit">Submit</button></form>`; $('#din').focus();
-          $('#df').onsubmit = (e) => { e.preventDefault(); if ($('#din').value.replace(/\D/g, '') === d.join('')) { best = len; len++; round(); } else drillDone('span', best, `Longest span: ${best} digits (last was ${d.join(' ')})`); }; return; }
-        el.textContent = d[k++]; setTimeout(() => { if ($('#dd')) $('#dd').textContent = ''; setTimeout(show, 200); }, 800);
+        if (k >= d.length) {
+          el.textContent = 'Type the digits in order';
+          $('#da').innerHTML = `<form class="num-form" id="df" autocomplete="off"><input id="din" inputmode="numeric" aria-label="Digits"><button class="cmd go" type="submit">Submit</button></form>`; $('#din').focus();
+          $('#df').onsubmit = (e) => { e.preventDefault(); if ($('#din').value.replace(/\D/g, '') === d.join('')) { best = len; len++; round(); } else drillDone('span', best, `Longest span: ${best} digits (the last was ${d.join(' ')})`); };
+          return;
+        }
+        el.textContent = d[k++]; setTimeout(() => { if ($('#dd')) $('#dd').textContent = ''; setTimeout(showD, 200); }, 800);
       };
-      setTimeout(show, 700);
+      setTimeout(showD, 700);
     };
     round();
   }
 
-  /* ───────── menu: status / codex / help ───────── */
+  /* ───────── MENU: status / codex / help ───────── */
   function openMenu(tab) {
-    G.mode = 'menu'; G.keys = {};
-    const h = S.hero;
-    const tabs = [['status', 'Status'], ['codex', 'Codex'], ['help', 'How to play']];
+    const h = S.hero, tabs = [['status', 'Status'], ['codex', 'Codex'], ['help', 'How to play']];
     let body = '';
     if (tab === 'status') {
-      const subj = Object.keys(SUBJ).map((s) => {
+      const subj = ORDER.map((s) => {
         const all = LL.QUESTIONS.filter((q) => q.s === s), known = all.filter((q) => S.codex[q.id] && S.codex[q.id].box > 0).length, st = stat(s);
-        return `<div class="skill"><div class="skill-top"><span style="color:${SUBJ[s].color}">${SUBJ[s].name}</span><small>${known}/${all.length} learned · ${st.r + st.w ? Math.round((st.r / (st.r + st.w)) * 100) + '% accuracy' : 'no battles yet'}</small></div>
+        return `<div class="skill"><div class="skill-top"><span style="color:${SUBJ[s].color}">${SUBJ[s].name}</span><small>${known}/${all.length} learned · ${st.r + st.w ? Math.round((st.r / (st.r + st.w)) * 100) + '% accuracy' : 'not started'}</small></div>
           <div class="bar"><i style="width:${(known / all.length) * 100}%;background:${SUBJ[s].color}"></i></div></div>`;
       }).join('');
-      body = `<div class="status">
-        <img class="status-art" src="${LL.ASSET_URLS.heroBattle}" alt="Wren, the lamplighter">
-        <div class="status-info">
-          <h3>Wren <span>Level ${h.lv} Lamplighter</span></h3>
-          <div class="bar hp"><i style="width:${(h.hp / maxHP()) * 100}%"></i><b>HP ${h.hp}/${maxHP()}</b></div>
-          <div class="bar mp"><i style="width:${(h.mp / maxMP()) * 100}%"></i><b>MP ${h.mp}/${maxMP()}</b></div>
+      body = `<div class="status"><img class="status-art" src="${LL.ASSET_URLS.heroBattle}" alt="Wren, Hedda’s apprentice">
+        <div class="status-info"><h3>Wren <span>Level ${h.lv} Apprentice</span></h3>
+          <div class="bar hp"><i style="width:100%"></i><b>HP ${maxHP()}</b></div><div class="bar mp"><i style="width:100%"></i><b>MP ${maxMP()}</b></div>
           <div class="bar xp"><i style="width:${(h.xp / xpNext()) * 100}%"></i><b>XP ${h.xp}/${xpNext()}</b></div>
-          <p class="muted">Tonics: ${h.tonics} · Riddles solved: ${Object.keys(S.riddles).length}/8 · Lanterns: ${litCount()}/4</p>
-          <h4>Knowledge</h4>${subj}
-        </div></div>`;
+          <p class="muted">Tonics ${h.tonics} · Lessons ${Object.keys(S.lessons).length}/${LL.LESSONS.length} · Puzzles ${Object.keys(S.puzzles).length}/6 · Riddles ${Object.keys(S.riddles).length}/8 · Lanterns ${litCount()}/4</p>
+          <h4>Knowledge</h4>${subj}</div></div>`;
     } else if (tab === 'codex') {
       const ids = Object.keys(S.codex).filter((id) => QBY[id]);
-      const bySub = Object.keys(SUBJ).map((s) => ({ s, items: ids.filter((id) => QBY[id].s === s) })).filter((x) => x.items.length);
-      body = ids.length ? `<p class="muted">${ids.length} of ${LL.QUESTIONS.length} entries. Each entry is a true fact from a question you have faced. Review them with Marla’s Recall so they stick.</p>
-        ${bySub.map(({ s, items }) => `<h4 style="color:${SUBJ[s].color}">${SUBJ[s].name}</h4><div class="codex">${items.map((id) => { const q = QBY[id], e = S.codex[id]; return `<article class="entry"><p>${esc(q.lore)}</p><span class="pips" aria-label="Memory ${e.box} of 5">${[1, 2, 3, 4, 5].map((b) => `<i class="${b <= e.box ? 'on' : ''}"></i>`).join('')}</span></article>`; }).join('')}</div>`).join('')}`
-        : '<p class="muted">The Codex is empty. Every question you face in battle writes a true fact here.</p>';
+      body = ids.length ? `<p class="muted">${ids.length} of ${LL.QUESTIONS.length} facts. The bars show how firmly each one is remembered; Recall strengthens them.</p>
+        ${ORDER.map((s) => ({ s, items: ids.filter((id) => QBY[id].s === s) })).filter((x) => x.items.length).map(({ s, items }) => `<h4 style="color:${SUBJ[s].color}">${SUBJ[s].name}</h4><div class="codex">${items.map((id) => { const e = S.codex[id]; return `<article class="entry"><p>${esc(QBY[id].lore)}</p><span class="pips" aria-label="Memory ${e.box} of 5">${[1, 2, 3, 4, 5].map((b) => `<i class="${b <= e.box ? 'on' : ''}"></i>`).join('')}</span></article>`; }).join('')}</div>`).join('')}`
+        : '<p class="muted">The Codex is empty. Every fact Hedda teaches you is written here.</p>';
     } else {
       body = `<div class="help">
-        <h4>Moving</h4><p>Arrow keys or WASD to walk. On a touchscreen, tap where you want to go. Tap a person or object to walk over and interact.</p>
-        <h4>Talking</h4><p>Enter or Space (or the A button) talks to whoever is nearby. A gold <b>?</b> means they have a riddle for you.</p>
-        <h4>Battles</h4><p>Murk creatures attack with questions. A right answer hits them; answer within the gold bar’s time for a <b>swift strike</b> worth 50% more. A wrong answer lets them hit you, and you still learn the right answer.</p>
-        <p><b>Clarity</b> (3 MP) removes wrong choices. <b>Mend</b> (4 MP) and <b>Tonics</b> restore HP. You can flee from ordinary monsters.</p>
-        <h4>Seals</h4><p>Glowing violet seals are mechanism puzzles. Solve them to reach each Great Lantern.</p>
-        <h4>Learning</h4><p>Every question adds a fact to your Codex. Marla’s <b>Recall</b> asks them again after 1, 2, 4, 8 and 16 days: spaced repetition, one of the best-tested ways to remember. <b>Training</b> has quick daily mind drills.</p>
-        <h4>Saving</h4><p>The game saves automatically in this browser.</p>
+        <h4>Lessons</h4><p>Hedda teaches each subject in four short lessons. Read the cards, then answer her questions. Anything you miss comes back before the lesson ends.</p>
+        <h4>Puzzles</h4><p>Each subject has a puzzle that unlocks after lesson 2. Logic has two. Ask Hedda for hints if you’re stuck.</p>
+        <h4>Trials</h4><p>Finish a subject’s lessons and puzzle, then win its Trial to relight its Lantern. In battle, a right answer strikes; answer before the gold bar runs out for a <b>swift strike</b> worth 50% more. A wrong answer lets the shadow hit you. <b>Clarity</b> removes wrong choices, and <b>Mend</b> and <b>Tonics</b> heal. You can retake a Trial as often as you like.</p>
+        <h4>Recall</h4><p>Everything you learn goes into your Codex. Recall asks it again after 1, 2, 4, 8 and 16 days. This is spaced repetition, one of the best-tested ways to remember.</p>
+        <h4>Keys</h4><p>1–4 choose an answer. Enter continues. M opens this menu. Esc closes windows.</p>
         <div class="danger" id="dz"><button class="cmd small" id="reset-ask">Start a new game</button></div></div>`;
     }
     openWin(`<div class="win menu-win"><div class="pw-head"><nav class="tabs">${tabs.map(([k, l]) => `<button class="tab ${k === tab ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</nav><button class="cmd small" data-close>Close</button></div><div class="menu-body">${body}</div></div>`);
@@ -931,43 +885,42 @@
     const ra = $('#reset-ask');
     if (ra) ra.onclick = () => {
       $('#dz').innerHTML = '<p>This erases your progress in this browser. It can’t be undone.</p><button class="cmd small danger-btn" id="reset-yes">Erase and restart</button> <button class="cmd small" id="reset-no">Keep playing</button>';
-      $('#reset-yes').onclick = () => { S = fresh(); save(); closeWin(); enterMap('tavern'); hud(); say(LL.STORY.intro, () => { S.introDone = true; save(); }); };
+      $('#reset-yes').onclick = () => { S = fresh(); save(); closeWin(); go(hub); say(LL.STORY.intro, () => { S.introDone = true; save(); go(hub); }); };
       $('#reset-no').onclick = () => openMenu('help');
     };
   }
 
+  /* ───────── keyboard ───────── */
+  window.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (mode === 'dialog') { if (k === 'Enter' || k === ' ') { e.preventDefault(); advance(); } return; }
+    if (e.target.matches && e.target.matches('input')) return;
+    if (/^[1-4]$/.test(k)) { const b = $$('#q-opts .opt')[+k - 1]; if (b && !b.disabled) { b.click(); e.preventDefault(); } return; }
+    if (k === 'Enter') {
+      const btn = $('#b-done') || $('#b-next') || $('#qn') || $('#rn') || $('#pn') || $('#next');
+      if (btn && document.activeElement !== btn) { e.preventDefault(); btn.click(); }
+    }
+    if (k === 'Escape' && mode === 'modal') { const c = $('#overlay [data-close]'); if (c) c.click(); }
+    if ((k === 'm' || k === 'M') && mode === 'app') openMenu('status');
+  });
+
   /* ───────── title & boot ───────── */
-  function title() {
-    G.mode = 'title';
-    const t = $('#title'); t.hidden = false;
-    $('#continue').hidden = !hasSave();
-    $('#newgame').onclick = () => start(true);
-    $('#continue').onclick = () => start(false);
-    ($('#continue').hidden ? $('#newgame') : $('#continue')).focus();
-  }
   function start(isNew) {
     $('#title').hidden = true;
     if (isNew) S = fresh(); else loadSave();
-    enterMap(S.map || 'tavern', S.pos || undefined);
+    document.body.classList.add('playing');
     hud(); $('#hud').hidden = false;
-    G.mode = 'explore';
-    if (!S.introDone) say(LL.STORY.intro, () => { S.introDone = true; save(); });
+    go(hub);
+    if (!S.introDone) say(LL.STORY.intro, () => { S.introDone = true; save(); go(hub); });
   }
-  // remember position periodically
-  setInterval(() => { if (G.map && G.mode === 'explore') { S.pos = { x: G.hero.x, y: G.hero.y }; save(); } }, 4000);
-
   function boot() {
-    R.resize(cv);
-    window.addEventListener('resize', () => R.resize(cv));
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.body.classList.add('touch');
     LL.loadAssets().then(() => {
-      // title backdrop: the tavern
-      enterMap('tavern', null, true);
-      $('#hud').hidden = true;
-      G.mode = 'title';
-      $('#banner').classList.remove('show');
-      title();
-      requestAnimationFrame(frame);
+      document.body.style.setProperty('--tavern', `url("${new URL(LL.ASSET_URLS.tavern, location.href).href}")`);
+      $('#title').hidden = false;
+      $('#continue').hidden = !hasSave();
+      $('#newgame').onclick = () => start(true);
+      $('#continue').onclick = () => start(false);
+      ($('#continue').hidden ? $('#newgame') : $('#continue')).focus();
     });
     window.claude?.hot?.snapshot?.(() => ({ state: S }));
   }
@@ -975,5 +928,5 @@
   if (hot?.ready) hot.ready((d) => { if (d && d.state) { try { localStorage.setItem(KEY, JSON.stringify(d.state)); } catch (e) { S = Object.assign(fresh(), d.state); } } boot(); });
   else boot();
 
-  LL.debug = { G, get S() { return S; }, enterMap, startBattle, openPuzzle };
+  LL.debug = { get S() { return S; }, go, hub, subject, lesson, openPuzzle, trial, battle, review, riddleBoard, PUZZLES };
 })();

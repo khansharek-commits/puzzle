@@ -5,18 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lanterns of Lore</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="A pixel-art JRPG where every battle is a question. Relight four lanterns of science, history, geography and philosophy, and defeat Vesper Null.">
+<meta name="description" content="A pixel-art JRPG set in one tavern, where a wizard teaches you science, history, geography, philosophy and logic, then tests you in battle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<canvas id="world" aria-label="Game world"></canvas>
-<div id="hud" hidden></div>
-<div id="banner" aria-live="polite"></div>
-<div id="toast" aria-live="polite"></div>
-<button id="act-btn" class="win" aria-label="Interact">A</button>
+<div class="backdrop" aria-hidden="true"></div>
+<header id="hud" hidden></header>
+<main id="app"></main>
 
 <div id="dialog" class="win" hidden>
   <div id="d-portrait" class="d-portrait"></div>
@@ -26,26 +24,25 @@
     <span class="d-more" aria-hidden="true">▼</span>
   </div>
 </div>
-
 <div id="overlay" hidden></div>
-<div id="fade"></div>
+<div id="toast" aria-live="polite"></div>
 
 <section id="title" hidden>
   <div class="title-card">
-    <p class="title-kicker">A tale of questions and light</p>
+    <p class="title-kicker">A tavern, a wizard, and everything worth knowing</p>
     <h1>Lanterns <span>of</span> Lore</h1>
-    <p class="title-sub">The Great Lanterns have gone dark. Relight them with what you know, and learn what you don’t.</p>
+    <p class="title-sub">The Murk is making Emberwick forget. Learn from Hedda the wizard, solve puzzles and pass the Trials to relight the four Lanterns.</p>
     <div class="title-btns">
       <button class="cmd go" id="continue" hidden>Continue</button>
       <button class="cmd" id="newgame">New Game</button>
     </div>
-    <p class="title-hint">Arrow keys or WASD to move · Enter to talk · or just tap</p>
   </div>
 </section>
 
 <script src="js/questions.js"></script>
+<script src="js/lessons.js"></script>
 <script src="js/world.js"></script>
-<script src="js/engine.js"></script>
+<script src="js/sprites.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
