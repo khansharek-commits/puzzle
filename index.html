@@ -3,19 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Atlas of Riddles</title>
+<title>Lanterns of Lore</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="A puzzle adventure across six real cities that trains logic, numeracy and lateral thinking, and teaches true facts about the world.">
+<meta name="description" content="A pixel-art JRPG where every battle is a question. Relight four lanterns of science, history, geography and philosophy, and defeat Vesper Null.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header id="topbar"></header>
-<main id="app" tabindex="-1"></main>
-<footer class="site-foot">Facts are rounded and checked against standard references. Puzzles are classic forms retold for this atlas.</footer>
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
+<canvas id="world" aria-label="Game world"></canvas>
+<div id="hud" hidden></div>
+<div id="banner" aria-live="polite"></div>
+<div id="toast" aria-live="polite"></div>
+<button id="act-btn" class="win" aria-label="Interact">A</button>
+
+<div id="dialog" class="win" hidden>
+  <div id="d-portrait" class="d-portrait"></div>
+  <div class="d-body">
+    <div id="d-name" class="d-name"></div>
+    <p id="d-text" class="d-text" aria-live="polite"></p>
+    <span class="d-more" aria-hidden="true">▼</span>
+  </div>
+</div>
+
+<div id="overlay" hidden></div>
+<div id="fade"></div>
+
+<section id="title" hidden>
+  <div class="title-card">
+    <p class="title-kicker">A tale of questions and light</p>
+    <h1>Lanterns <span>of</span> Lore</h1>
+    <p class="title-sub">The Great Lanterns have gone dark. Relight them with what you know, and learn what you don’t.</p>
+    <div class="title-btns">
+      <button class="cmd go" id="continue" hidden>Continue</button>
+      <button class="cmd" id="newgame">New Game</button>
+    </div>
+    <p class="title-hint">Arrow keys or WASD to move · Enter to talk · or just tap</p>
+  </div>
+</section>
+
+<script src="js/questions.js"></script>
+<script src="js/world.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/game.js"></script>
 </body>
 </html>

@@ -1,47 +1,69 @@
-# Atlas of Riddles
+# Lanterns of Lore
 
-A puzzle adventure that trains how you think and teaches you true things about the world.
+A pixel-art JRPG where every battle is a question.
 
-You travel with Professor Amara Quill to six real places: Cairo, Kyoto, Reykjavík, Manaus, Istanbul and Greenwich. There are 36 hand-written puzzles in five skill areas:
+The four Great Lanterns around the village of Emberwick have gone dark, and the Murk, a fog that makes people forget, is creeping in. You play Wren, a young lamplighter. Walk out from the Gilded Lantern tavern, battle creatures of the Murk with what you know, solve the seals that guard each Lantern, and confront the villain, Vesper Null.
 
-| Skill | What it trains | Examples |
+## What it trains
+
+| Area | Where | What you face |
 |---|---|---|
-| Logic | Deduction | Truth-tellers and liars, the three-hat problem, a code lock |
-| Numeracy | Number sense | Sums of squares, clock angles, time zones |
-| Lateral | Questioning assumptions | Doubling lily pads, the swallow between trains |
-| Spatial | Planning moves | Tower of Hanoi, river crossing, water jugs, lanterns |
-| Knowledge | Facts about the world | Rivers, plate tectonics, history timelines |
+| Science | Brass Observatory (north) | Physics, chemistry, biology, astronomy |
+| History | Sunken Archive (east) | Ancient to modern history |
+| Geography | Wayfarer Wilds (west) | Oceans, mountains, countries, plate tectonics |
+| Philosophy | Grove of Whys (south) | Thinkers, ethics, and logical fallacies |
+| Logic | Null’s Spire | Reasoning traps, probability, number puzzles |
 
-## How it plays
+- **85 questions**, each with a true fact. Answering a question writes its fact into your **Codex**.
+- **Battles**: a right answer damages the monster. Answer within the gold bar's time for a swift strike that deals 50% more damage. A wrong answer lets the monster hit you, but you still see the right answer and why.
+- **Seals**: mechanism puzzles guard each Lantern: Tower of Hanoi, river crossing, measuring flasks, a ring of lanterns, a magic square and a code lock.
+- **Riddles**: eight townsfolk (marked with a gold `?`) have lateral-thinking riddles that reward Tonics.
+- **Recall**: Marla, the innkeeper, quizzes you on your Codex after 1, 2, 4, 8 and 16 days. This spaced repetition keeps the facts in your memory.
+- **Training**: daily mind drills (Quick Maths, Number Patterns, Digit Span).
 
-- **Insight**: each puzzle is worth points. Every wrong answer lowers what it pays, so think before you answer.
-- **Hint tokens**: each puzzle has three hints, and each one costs a token. You earn a token for every puzzle you solve.
-- **Field Notes**: every solution unlocks a note with a real fact or a thinking technique. Notes come back as quiz questions after 1, 2, 4, 8 and 16 days (a Leitner spaced-repetition schedule), so the facts stick.
-- **Mental Gym**: freshly generated drills you can repeat every day: Quick Maths (60 s, adapts to how well you're doing), Number Patterns and Digit Span (working memory).
-- **Profile**: your rank, a breakdown by skill area, gym bests and your daily streak.
+## Controls
 
-Solve 4 puzzles in a city to unlock the next one.
+- Move: arrow keys or WASD, or tap/click where you want to go.
+- Talk/examine: Enter or Space, the A button on touchscreens, or tap the person.
+- Menu (status, Codex, help): M or Esc, or the Menu button.
+- In battle: 1–4 to choose an answer, Enter to continue.
 
 ## Running it
 
-It needs no build step and no dependencies. Open `index.html` in a browser, or serve the folder:
+The game needs no build step. Serve the folder and open it in a browser:
 
 ```sh
 python3 -m http.server 8000
-# then visit http://localhost:8000
+# visit http://localhost:8000
 ```
 
-Progress is saved in your browser's `localStorage`.
+Progress saves automatically in the browser's `localStorage`.
+
+To make one self-contained HTML file with every image and script inlined:
+
+```sh
+python3 tools/build_single.py lanterns-of-lore.html
+```
 
 ## Project layout
 
 ```
-index.html      page shell
-css/style.css   all styles (light and dark themes)
-js/data.js      chapters, puzzles, hints, explanations and field notes
-js/app.js       game engine, puzzle mechanics, review system, Mental Gym
+index.html          page shell
+css/style.css       JRPG windows, HUD, battle and menu styles
+js/questions.js     question bank (with Codex facts) and townsfolk riddles
+js/world.js         maps, characters, monster sprites and palettes, story script
+js/engine.js        isometric pixel renderer, lighting, pathfinding
+js/game.js          exploration, dialogue, battles, seals, inn, Codex, menus
+assets/             the hero sprite, battle art and portrait, and the tavern scene
+tools/              single-file build script
 ```
 
-## Adding puzzles
+## Adding content
 
-Add an entry to `ATLAS.PUZZLES` in `js/data.js`. Supported `type`s are `choice`, `number`, `text`, `order`, `hanoi`, `lights`, `river`, `jugs` and `magic`. Every puzzle needs three `hints`, an `explain`, and a `note` with a `recall` question for the review system.
+- **Questions**: add `{ id, s, q, o, a, lore }` to `LL.QUESTIONS` in `js/questions.js`. `s` is the subject (`sci`, `his`, `geo`, `phi` or `log`). For a typed numeric answer, set `o: null` and make `a` the number.
+- **Maps**: each map in `js/world.js` is a grid of characters. The legend is in the comment above `LL.MAPS`.
+- **Monsters**: add to `LL.ENEMIES` with a sprite and palette from `LL.SPRITES` and `LL.PALETTES`.
+
+## Art
+
+The hero (Wren) and the Gilded Lantern tavern scene are original artwork supplied by the project owner. Everything else is drawn in code.
