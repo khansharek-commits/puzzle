@@ -1,0 +1,492 @@
+{
+  "id": "history",
+  "title": "History",
+  "tagline": "How we got here, and why it turned out this way.",
+  "units": [
+    {
+      "id": "his-u1",
+      "title": "How Civilisation Began",
+      "summary": "From hunter-gatherers to farming, the first cities, writing and the first written laws.",
+      "lessons": [
+        {
+          "id": "his-1-1",
+          "title": "The Long Prehistory",
+          "goal": "See how recent civilisation is compared with the whole human story.",
+          "steps": [
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Our species, Homo sapiens, has existed for about 300,000 years. For roughly what share of that time have humans lived in cities?",
+              "options": [
+                "About half",
+                "About a quarter",
+                "Less than 2%"
+              ],
+              "answer": 2,
+              "explain": "The first cities appeared around 6,000 years ago. That’s about 2% of our species’ history, and most people only began living in cities very recently."
+            },
+            {
+              "type": "teach",
+              "title": "Our species",
+              "text": "The oldest known fossils of Homo sapiens, found at Jebel Irhoud in Morocco, are about 300,000 years old. From Africa our ancestors spread across the world, reaching Australia by at least 50,000 years ago and the Americas by around 15,000 or more years ago.\n\nFor almost all of that time, everyone lived as hunter-gatherers."
+            },
+            {
+              "type": "teach",
+              "title": "Hunter-gatherer life",
+              "text": "Hunter-gatherers lived in small, mobile bands, often of a few dozen people. They knew hundreds of plants and animals, moved with the seasons, and owned little they couldn’t carry.\n\nThey weren’t primitive: their brains were the same as ours. They made art (cave paintings in Indonesia and Europe are over 40,000 years old), tools, clothing, boats and music."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Compared with you, how intelligent were humans living 40,000 years ago?",
+              "options": [
+                "Much less intelligent",
+                "Biologically just as capable; they lacked accumulated knowledge, not brainpower",
+                "More intelligent"
+              ],
+              "answer": 1,
+              "explain": "Their brains were essentially modern. What changed over history was the knowledge, technology and institutions passed down and built upon."
+            },
+            {
+              "type": "question",
+              "kind": "order",
+              "prompt": "Put these in order, earliest first.",
+              "items": [
+                "The first cities",
+                "Farming begins",
+                "The oldest known Homo sapiens fossils",
+                "Humans reach Australia"
+              ],
+              "answer": [
+                "The oldest known Homo sapiens fossils",
+                "Humans reach Australia",
+                "Farming begins",
+                "The first cities"
+              ],
+              "explain": "About 300,000 years ago, at least 50,000 years ago, about 12,000 years ago, and about 6,000 years ago."
+            },
+            {
+              "type": "recap",
+              "points": [
+                "Homo sapiens is about 300,000 years old.",
+                "For about 98% of that time, humans were hunter-gatherers.",
+                "Ancient humans had brains like ours; what grew was shared knowledge."
+              ]
+            }
+          ],
+          "review": [
+            {
+              "id": "his-1-1-r1",
+              "kind": "choice",
+              "prompt": "Roughly how old is our species, Homo sapiens?",
+              "options": [
+                "30,000 years",
+                "300,000 years",
+                "3 million years"
+              ],
+              "answer": 1,
+              "explain": "The oldest fossils, from Jebel Irhoud in Morocco, are about 300,000 years old."
+            },
+            {
+              "id": "his-1-1-r2",
+              "kind": "choice",
+              "prompt": "How did most humans live for most of our species’ history?",
+              "options": [
+                "As farmers",
+                "As hunter-gatherers",
+                "In small towns"
+              ],
+              "answer": 1,
+              "explain": "Farming and cities are very recent."
+            }
+          ]
+        },
+        {
+          "id": "his-1-2",
+          "title": "The Farming Revolution",
+          "goal": "Understand when and where farming began, and what it changed, good and bad.",
+          "steps": [
+            {
+              "type": "teach",
+              "title": "When and where",
+              "text": "Around 12,000 years ago, people in the Fertile Crescent (today’s Iraq, Syria, Türkiye, Israel and nearby) began farming wheat and barley and herding sheep and goats.\n\nFarming was then invented independently in at least six or seven other places, including China (rice and millet), Mesoamerica (maize), the Andes (potatoes), New Guinea and parts of Africa. Different peoples, far apart, made the same leap."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "What is the most important thing farming made possible?",
+              "options": [
+                "Less work for everyone",
+                "A food surplus, so some people could do jobs other than finding food",
+                "Better health for everyone"
+              ],
+              "answer": 1,
+              "explain": "A surplus let populations grow and supported people who weren’t producing food: priests, craftspeople, soldiers and rulers."
+            },
+            {
+              "type": "teach",
+              "title": "Not all good news",
+              "text": "Farming fed more people, but skeletons from early farming villages are often shorter and show more signs of disease and poor nutrition than those of hunter-gatherers. Farmers worked long hours, relied on a few crops that could fail, and lived crowded together with animals, which helped diseases spread.\n\nSo why farm? Because farming fed far more people per square kilometre. Once populations grew, there was no going back."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Early farmers were often less healthy than hunter-gatherers. Why did farming still spread?",
+              "options": [
+                "Farmers were forced by kings from the start",
+                "Farming supported many more people on the same land, so farming populations grew and outnumbered others",
+                "Hunter-gatherers asked to learn it"
+              ],
+              "answer": 1,
+              "explain": "More food per acre meant more people. Larger farming populations spread and outnumbered foraging groups."
+            },
+            {
+              "type": "teach",
+              "title": "A surprising temple",
+              "text": "At Göbekli Tepe in Türkiye, people built huge carved stone pillars, some over 5 metres tall, around 11,500 years ago, before or right at the start of farming there. Some archaeologists think big gatherings at sites like this may have helped push people toward settling down, not the other way round."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "What does Göbekli Tepe suggest?",
+              "options": [
+                "Monuments were only built after farming",
+                "People who may still have been hunter-gatherers could organise huge building projects",
+                "It was built by a later empire"
+              ],
+              "answer": 1,
+              "explain": "It challenges the old idea that complex society always came after farming."
+            },
+            {
+              "type": "recap",
+              "points": [
+                "Farming began about 12,000 years ago in the Fertile Crescent, and independently elsewhere.",
+                "The surplus let populations grow and supported non-farming jobs.",
+                "Early farmers were often less healthy, but farming fed far more people."
+              ]
+            }
+          ],
+          "review": [
+            {
+              "id": "his-1-2-r1",
+              "kind": "choice",
+              "prompt": "Where did farming first begin, about 12,000 years ago?",
+              "options": [
+                "The Fertile Crescent",
+                "Northern Europe",
+                "Australia"
+              ],
+              "answer": 0,
+              "explain": "Wheat, barley, sheep and goats in today’s Middle East."
+            },
+            {
+              "id": "his-1-2-r2",
+              "kind": "choice",
+              "prompt": "Why was a food surplus so important?",
+              "options": [
+                "It allowed some people to specialise in other jobs",
+                "It ended all hunger",
+                "It meant less work"
+              ],
+              "answer": 0,
+              "explain": "Priests, crafts, soldiers and rulers all depended on it."
+            },
+            {
+              "id": "his-1-2-r3",
+              "kind": "choice",
+              "prompt": "Was farming invented once or several times?",
+              "options": [
+                "Once, then it spread",
+                "Independently in several places"
+              ],
+              "answer": 1,
+              "explain": "At least six or seven separate places."
+            }
+          ]
+        },
+        {
+          "id": "his-1-3",
+          "title": "The First Cities",
+          "goal": "See what made cities new, and what they needed to work.",
+          "steps": [
+            {
+              "type": "teach",
+              "title": "Uruk",
+              "text": "One of the first true cities was Uruk, in Mesopotamia, the land between the Tigris and Euphrates rivers in today’s Iraq. By around 3000 BCE it may have held 40,000 people or more, behind walls about 9 km long.\n\nThat is nothing like a village. Most people in Uruk didn’t grow their own food."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Tens of thousands of people live together and most don’t farm. What problem must the city solve?",
+              "options": [
+                "How to collect and share out food from the countryside",
+                "How to stop people farming",
+                "How to build taller walls"
+              ],
+              "answer": 0,
+              "explain": "Cities depend on moving food from farms to non-farmers. That needs storage, record-keeping and someone in charge."
+            },
+            {
+              "type": "teach",
+              "title": "What cities created",
+              "text": "To feed and organise so many people, early cities developed:\n\n• Specialised jobs: potters, metalworkers, scribes, priests, soldiers.\n• Big temples that stored grain and handed out rations.\n• Rulers and officials to make decisions and settle disputes.\n• Social classes: some people became much richer and more powerful than others.\n\nHistorians often call this package “civilisation”."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Why were the first cities usually built beside great rivers, like the Tigris, Euphrates, Nile and Indus?",
+              "options": [
+                "Rivers provided water for irrigation, fertile soil and easy transport",
+                "Rivers kept enemies away completely",
+                "People liked the view"
+              ],
+              "answer": 0,
+              "explain": "River valleys could feed big populations, and boats moved goods far more easily than carts."
+            },
+            {
+              "type": "question",
+              "kind": "order",
+              "prompt": "Put the chain of causes in order.",
+              "items": [
+                "Cities with specialists and rulers",
+                "Food surplus",
+                "Farming"
+              ],
+              "answer": [
+                "Farming",
+                "Food surplus",
+                "Cities with specialists and rulers"
+              ],
+              "explain": "Farming made a surplus possible; the surplus supported large populations of non-farmers living in cities."
+            },
+            {
+              "type": "recap",
+              "points": [
+                "Uruk in Mesopotamia was one of the first cities, perhaps 40,000+ people by 3000 BCE.",
+                "Early cities grew along rivers that supported farming and transport.",
+                "Cities brought specialised jobs, temples, rulers and inequality."
+              ]
+            }
+          ],
+          "review": [
+            {
+              "id": "his-1-3-r1",
+              "kind": "choice",
+              "prompt": "Uruk, one of the first cities, was in…",
+              "options": [
+                "Egypt",
+                "Mesopotamia (today’s Iraq)",
+                "Greece"
+              ],
+              "answer": 1,
+              "explain": "Between the Tigris and Euphrates rivers."
+            },
+            {
+              "id": "his-1-3-r2",
+              "kind": "choice",
+              "prompt": "What is a key difference between a city and a farming village?",
+              "options": [
+                "Most city dwellers don’t produce their own food",
+                "Cities have no farms nearby",
+                "Villages have no houses"
+              ],
+              "answer": 0,
+              "explain": "Cities rely on a surplus moved in from the countryside."
+            }
+          ]
+        },
+        {
+          "id": "his-1-4",
+          "title": "The Invention of Writing",
+          "goal": "Learn why writing was invented and how it changed what societies could do.",
+          "steps": [
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "The earliest writing in Mesopotamia, from around 3200 BCE, was mostly used for what?",
+              "options": [
+                "Poetry and stories",
+                "Religious prayers",
+                "Accounts: recording grain, beer, livestock and workers"
+              ],
+              "answer": 2,
+              "explain": "Most of the earliest clay tablets are bookkeeping. Writing began as a tool for managing a city’s economy."
+            },
+            {
+              "type": "teach",
+              "title": "Cuneiform",
+              "text": "The Sumerians of Mesopotamia pressed marks into wet clay with a cut reed, making wedge-shaped signs. This script is called cuneiform, from the Latin for “wedge”.\n\nAt first the signs were pictures and number marks. Over centuries they came to stand for sounds and words, so people could write down anything: laws, letters, medicine and literature such as the Epic of Gilgamesh."
+            },
+            {
+              "type": "teach",
+              "title": "Invented more than once",
+              "text": "Writing was invented independently at least three or four times: in Mesopotamia (about 3200 BCE), possibly in Egypt at about the same time, in China (by about 1200 BCE, on “oracle bones”), and in Mesoamerica (by the first millennium BCE).\n\nEach time it appeared in a complex society with a lot to keep track of."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "What could a society do with writing that it couldn’t easily do before?",
+              "options": [
+                "Remember far more than any one person, across generations and distances",
+                "Grow food faster",
+                "Stop all wars"
+              ],
+              "answer": 0,
+              "explain": "Writing stores information outside human memory: debts, laws, knowledge and history. It is also why the period with written records is called “history”."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Why is the time before writing called “prehistory”?",
+              "options": [
+                "Nothing important happened",
+                "There are no written records from it, so we know it only from archaeology",
+                "It was before humans existed"
+              ],
+              "answer": 1,
+              "explain": "Prehistory is studied through bones, tools and ruins rather than texts."
+            },
+            {
+              "type": "recap",
+              "points": [
+                "Writing began in Mesopotamia around 3200 BCE, as record-keeping.",
+                "Cuneiform means “wedge-shaped”, pressed into clay.",
+                "Writing was invented independently several times, and lets knowledge outlast memory."
+              ]
+            }
+          ],
+          "review": [
+            {
+              "id": "his-1-4-r1",
+              "kind": "choice",
+              "prompt": "What were most of the earliest written tablets?",
+              "options": [
+                "Stories",
+                "Economic records",
+                "Maps"
+              ],
+              "answer": 1,
+              "explain": "Writing began as bookkeeping."
+            },
+            {
+              "id": "his-1-4-r2",
+              "kind": "choice",
+              "prompt": "“Cuneiform” comes from the Latin for…",
+              "options": [
+                "clay",
+                "wedge",
+                "king"
+              ],
+              "answer": 1,
+              "explain": "Its signs are wedge-shaped marks."
+            },
+            {
+              "id": "his-1-4-r3",
+              "kind": "choice",
+              "prompt": "When did writing appear in Mesopotamia?",
+              "options": [
+                "About 10,000 BCE",
+                "About 3200 BCE",
+                "About 500 BCE"
+              ],
+              "answer": 1,
+              "explain": "About 5,200 years ago."
+            }
+          ]
+        },
+        {
+          "id": "his-1-5",
+          "title": "Kings and the First Written Laws",
+          "goal": "See how early states used written law, and whose interests it protected.",
+          "steps": [
+            {
+              "type": "teach",
+              "title": "Hammurabi’s Code",
+              "text": "Around 1754 BCE, Hammurabi, king of Babylon, had 282 laws carved onto a tall black stone pillar and displayed publicly. It is one of the best-preserved early law codes; the pillar is now in the Louvre in Paris.\n\nThe laws covered trade, wages, debts, marriage, property, theft and injury, and set out the punishments."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Why carve laws in stone in a public place, rather than let judges decide each case however they liked?",
+              "options": [
+                "So everyone could know the rules in advance, and the king’s authority looked permanent",
+                "Because there was no paper",
+                "To decorate the city"
+              ],
+              "answer": 0,
+              "explain": "Publishing laws made them predictable and public, and showed the king as the source of justice. Both ideas still matter today."
+            },
+            {
+              "type": "teach",
+              "title": "An eye for an eye, but not for everyone",
+              "text": "Hammurabi’s code is famous for “an eye for an eye”. But punishments depended on social class. If a man put out the eye of another free man, his own eye would be put out. If he put out the eye of a commoner, he paid a fine of silver. If the victim was a slave, he paid half the slave’s value to the owner.\n\nEarly laws gave order and predictability, but they also protected hierarchy."
+            },
+            {
+              "type": "question",
+              "kind": "choice",
+              "prompt": "Under Hammurabi’s code, who decided the punishment for injuring someone?",
+              "options": [
+                "The same punishment for everyone",
+                "It depended on the social class of the victim",
+                "The victim chose freely"
+              ],
+              "answer": 1,
+              "explain": "Harming a high-status person was punished far more harshly. Equality before the law is a much later idea."
+            },
+            {
+              "type": "question",
+              "kind": "order",
+              "prompt": "Put these in order, earliest first.",
+              "items": [
+                "Hammurabi’s law code",
+                "Farming begins in the Fertile Crescent",
+                "Writing begins in Mesopotamia",
+                "Humans reach Australia"
+              ],
+              "answer": [
+                "Humans reach Australia",
+                "Farming begins in the Fertile Crescent",
+                "Writing begins in Mesopotamia",
+                "Hammurabi’s law code"
+              ],
+              "explain": "At least 50,000 years ago; about 10,000 BCE; about 3200 BCE; about 1754 BCE."
+            },
+            {
+              "type": "recap",
+              "points": [
+                "Hammurabi of Babylon published 282 laws around 1754 BCE.",
+                "Public written law made rules predictable and boosted the king’s authority.",
+                "Punishments depended on social class: equality before the law came much later."
+              ]
+            }
+          ],
+          "review": [
+            {
+              "id": "his-1-5-r1",
+              "kind": "choice",
+              "prompt": "Hammurabi ruled which city?",
+              "options": [
+                "Uruk",
+                "Babylon",
+                "Memphis"
+              ],
+              "answer": 1,
+              "explain": "Babylon, around 1754 BCE."
+            },
+            {
+              "id": "his-1-5-r2",
+              "kind": "choice",
+              "prompt": "Did “an eye for an eye” apply equally to everyone in Hammurabi’s code?",
+              "options": [
+                "Yes",
+                "No, punishment depended on social class"
+              ],
+              "answer": 1,
+              "explain": "Harming a commoner or slave was punished with a fine instead."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

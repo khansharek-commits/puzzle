@@ -1,0 +1,324 @@
+{
+  "id": "economics",
+  "title": "Economics",
+  "tagline": "How people, businesses and countries make choices when they can't have everything.",
+  "units": [
+    {
+      "id": "econ-u1",
+      "title": "Thinking Like an Economist",
+      "summary": "The five ideas every other part of economics is built on: scarcity, opportunity cost, thinking at the margin, incentives and trade.",
+      "lessons": [
+        {
+          "id": "econ-1-1",
+          "title": "Scarcity: You Can't Have Everything",
+          "goal": "Understand why every choice involves giving something up.",
+          "steps": [
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A billionaire has more money than they could ever spend. Do they face scarcity?",
+              "options": ["No. Scarcity only affects people without enough money.", "Yes. They still have only 24 hours a day and one life to spend them in."],
+              "answer": 1,
+              "explain": "Even with unlimited money, time is limited. Choosing to spend an afternoon in Paris means not spending it in Tokyo. That is scarcity."
+            },
+            {
+              "type": "teach",
+              "title": "What scarcity means",
+              "text": "Scarcity means our wants are bigger than the resources available to satisfy them. Resources include money, but also time, land, raw materials, energy and people’s skills.\n\nScarcity isn’t the same as poverty. A rich country and a poor country both face it; they just face different trade-offs."
+            },
+            {
+              "type": "teach",
+              "title": "Why it matters",
+              "text": "Because resources are scarce, every use of a resource is also a decision not to use it for something else. An hour spent studying is an hour not spent sleeping. A field planted with wheat can’t also grow corn.\n\nEconomics is the study of how people make these choices, and what happens when millions of choices add up."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A town has one empty plot of land. Which statement is the economist’s way of describing the situation?",
+              "options": ["The town should build whatever is most popular.", "Using the plot for a park means not using it for housing, a school or shops.", "Land isn’t scarce because the town could buy more."],
+              "answer": 1,
+              "explain": "The core economic insight is the trade-off: each possible use of the plot rules out the others. Deciding which is best comes later; first, see what is being given up.",
+              "feedback": { "0": "That jumps to a decision. Start by seeing what each option gives up.", "2": "Even if more land could be bought, that would cost money that couldn’t be spent elsewhere. The scarcity just moves." }
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Which of these is NOT a scarce resource for a student preparing for exams?",
+              "options": ["Hours before the exam", "Energy and focus", "The fact that 2 + 2 = 4", "Money for tutoring"],
+              "answer": 2,
+              "explain": "Knowledge like 2 + 2 = 4 isn’t used up when someone uses it, so it isn’t scarce in the economic sense. Time, energy and money all run out."
+            },
+            {
+              "type": "recap",
+              "points": ["Scarcity: wants are greater than the resources available.", "Time, land, materials and skills are resources too, not just money.", "Every use of a resource is a choice not to use it for something else."]
+            }
+          ],
+          "review": [
+            {
+              "id": "econ-1-1-r1", "kind": "choice",
+              "prompt": "Why does even the richest person face scarcity?",
+              "options": ["Their money can run out", "Their time is limited", "Taxes take most of their money"],
+              "answer": 1,
+              "explain": "Time is a resource no one can buy more of, so everyone faces trade-offs."
+            },
+            {
+              "id": "econ-1-1-r2", "kind": "choice",
+              "prompt": "Scarcity means…",
+              "options": ["people are poor", "wants are greater than the resources available", "prices are high"],
+              "answer": 1,
+              "explain": "Scarcity is about the gap between wants and resources, and it affects everyone."
+            }
+          ]
+        },
+        {
+          "id": "econ-1-2",
+          "title": "Opportunity Cost: The Real Price of Anything",
+          "goal": "Work out what a choice really costs, including what you give up.",
+          "steps": [
+            {
+              "type": "question", "kind": "number",
+              "prompt": "A concert ticket costs 50. To go, you’d have to skip a work shift that pays 80. You would have worked otherwise. What does going to the concert really cost you?",
+              "unit": "",
+              "answer": 130,
+              "explain": "You pay 50 for the ticket and give up 80 in wages. The full cost is 130. If the concert isn’t worth 130 to you, the economist says don’t go."
+            },
+            {
+              "type": "teach",
+              "title": "Opportunity cost",
+              "text": "The opportunity cost of a choice is the value of the best alternative you give up.\n\nIt includes money you spend, but also money you could have earned, time and anything else you sacrifice. The price on the label is often only part of the real cost."
+            },
+            {
+              "type": "teach",
+              "title": "Only the next-best option counts",
+              "text": "You can only do one thing with a given hour or pound, so the opportunity cost is the value of the single best option you gave up, not the sum of all of them.\n\nIf instead of studying tonight you could have worked (worth 40) or watched a film (worth 15 of enjoyment to you), the opportunity cost of studying is 40, not 55."
+            },
+            {
+              "type": "question", "kind": "number",
+              "prompt": "You have a free Saturday. You could tutor (earning 60), help at a friend’s café (earning 45) or rest. You choose to go hiking. What is the opportunity cost of hiking, in money terms?",
+              "answer": 60,
+              "explain": "The opportunity cost is the best alternative given up: tutoring at 60. You couldn’t have done all three, so you don’t add them up."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Going to university costs 9,000 a year in fees. A student could otherwise earn 20,000 a year working. An economist would say the yearly cost is about…",
+              "options": ["9,000", "20,000", "29,000", "11,000"],
+              "answer": 2,
+              "explain": "Fees (9,000) plus the earnings given up (20,000). Lost earnings are often the biggest cost of studying, which is why university is a bigger investment than the fees alone suggest.",
+              "feedback": { "0": "That counts only the money paid. What else does the student give up?", "3": "The lost wages are a cost, not something to subtract." }
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A city spends 10 million on a new stadium. What is the opportunity cost?",
+              "options": ["Nothing, if the stadium makes a profit", "The 10 million itself", "The best other use of that 10 million, such as a hospital wing or lower taxes"],
+              "answer": 2,
+              "explain": "Opportunity cost is measured in what you could have had instead. When governments spend, ask: what else could this money have done?"
+            },
+            {
+              "type": "recap",
+              "points": ["Opportunity cost = the value of the best alternative you give up.", "It includes lost time and lost earnings, not just money spent.", "Count only the single next-best option, not every option."]
+            }
+          ],
+          "review": [
+            {
+              "id": "econ-1-2-r1", "kind": "number",
+              "prompt": "A course costs 300 and takes a week off work that would have paid 500. What is its full cost?",
+              "answer": 800,
+              "explain": "300 in fees plus 500 in lost earnings."
+            },
+            {
+              "id": "econ-1-2-r2", "kind": "choice",
+              "prompt": "You could spend an evening earning 50 or watching a game worth 20 to you. You study instead. What is the opportunity cost?",
+              "options": ["20", "50", "70"],
+              "answer": 1,
+              "explain": "Only the best alternative counts: earning 50."
+            }
+          ]
+        },
+        {
+          "id": "econ-1-3",
+          "title": "Sunk Costs and Thinking at the Margin",
+          "goal": "Make decisions by looking forward, comparing the extra benefit with the extra cost.",
+          "steps": [
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "You paid 15 for a film. After 30 minutes you’re bored and would rather go for a walk. What should you do?",
+              "options": ["Stay, or the 15 is wasted", "Leave, if you’d enjoy the walk more than the rest of the film"],
+              "answer": 1,
+              "explain": "The 15 is gone whether you stay or leave. Staying doesn’t get it back; it only costs you more time."
+            },
+            {
+              "type": "teach",
+              "title": "Sunk costs",
+              "text": "A sunk cost is money, time or effort already spent that you can’t get back.\n\nBecause nothing you decide now can change it, a sunk cost shouldn’t affect your decision. Yet people often keep going with bad projects “because we’ve already invested so much”. This is called the sunk cost fallacy, or the Concorde fallacy, after the British and French governments that kept funding the supersonic Concorde airliner even as it became clear it would never pay back its costs."
+            },
+            {
+              "type": "teach",
+              "title": "Thinking at the margin",
+              "text": "Economists call a small, extra step a marginal change: one more hour, one more worker, one more slice.\n\nThe rule for good decisions is: do one more unit if its marginal benefit is greater than its marginal cost. Ignore what you have already spent; compare only what the next step adds and what it costs."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A company has spent 2 million developing an app. Finishing it will cost another 1 million, and it’s expected to earn 600,000 in total. What should it do?",
+              "options": ["Finish it, so the 2 million isn’t wasted", "Stop, because finishing costs 1 million to earn 600,000", "Finish it, because 2.6 million is more than 2 million"],
+              "answer": 1,
+              "explain": "The 2 million is sunk. Looking forward, finishing costs 1 million and returns 600,000: a further loss of 400,000. Stopping is better.",
+              "feedback": { "0": "The 2 million is spent either way. What happens to the money still to come?", "2": "That mixes sunk costs into the decision. Compare only future costs and future earnings." }
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A bakery sells extra cakes at 4 each. Each extra cake costs 3 in ingredients and labour. A 101st cake would cost 3.50 to make, and a 102nd would cost 4.50. How many should it make?",
+              "options": ["100", "101", "102"],
+              "answer": 1,
+              "explain": "The 101st cake adds 4 of revenue for 3.50 of cost, so make it. The 102nd adds 4 for 4.50: a loss. Stop at 101."
+            },
+            {
+              "type": "recap",
+              "points": ["Sunk costs are already spent and can’t be recovered, so ignore them.", "Marginal means one more unit or step.", "Do one more if its marginal benefit is greater than its marginal cost."]
+            }
+          ],
+          "review": [
+            {
+              "id": "econ-1-3-r1", "kind": "choice",
+              "prompt": "You’ve paid for a non-refundable gym year but hate it. Should the payment make you keep going?",
+              "options": ["Yes, to get your money’s worth", "No, the payment is a sunk cost"],
+              "answer": 1,
+              "explain": "The money is gone either way. Go only if going is worth the time and effort from now on."
+            },
+            {
+              "id": "econ-1-3-r2", "kind": "choice",
+              "prompt": "When should a firm produce one more unit?",
+              "options": ["When total revenue is high", "When the extra benefit is greater than the extra cost", "When it has already spent a lot"],
+              "answer": 1,
+              "explain": "That is the marginal rule."
+            }
+          ]
+        },
+        {
+          "id": "econ-1-4",
+          "title": "Incentives: People Respond to Rewards",
+          "goal": "Predict how rules and prices change behaviour, including in ways nobody intended.",
+          "steps": [
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "In 1902, officials in Hanoi (then under French rule) paid people a reward for every rat tail they handed in, to fight a plague of rats. What do you think happened?",
+              "options": ["The rat population fell sharply", "People cut off tails and released the rats to breed more", "Nobody took part"],
+              "answer": 1,
+              "explain": "Officials soon saw tailless rats running around the city. Some people even began breeding rats to collect more bounties. The reward was for tails, not for fewer rats."
+            },
+            {
+              "type": "teach",
+              "title": "What an incentive is",
+              "text": "An incentive is anything that rewards or penalises a choice: a price, a wage, a fine, a tax, a grade, praise.\n\nWhen incentives change, behaviour changes. Raise the price of something and people buy less. Pay a bonus for something and people do more of it. This is one of the most reliable patterns in economics."
+            },
+            {
+              "type": "teach",
+              "title": "Unintended consequences",
+              "text": "People respond to what is actually rewarded, not to what the rule-maker hoped for. The Hanoi bounty rewarded tails, so people produced tails.\n\nWhen you design or judge a policy, ask: what exactly does this reward, and what is the easiest way to get that reward?"
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A call centre pays staff a bonus for every call they finish in under two minutes. What is the most likely unintended effect?",
+              "options": ["Customers get more help", "Staff rush or cut off calls, leaving problems unsolved", "Fewer calls come in"],
+              "answer": 1,
+              "explain": "The bonus rewards short calls, not solved problems. Expect short calls, even if customers have to call back."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A government adds a tax to sugary drinks. Which outcome does the incentive predict?",
+              "options": ["People buy more sugary drinks", "People buy fewer sugary drinks and switch to other drinks", "Nothing changes, because people like their drinks"],
+              "answer": 1,
+              "explain": "A higher price is a stronger penalty for that choice, so people buy less of it. The UK’s 2018 soft drinks levy went further: many companies cut the sugar in their drinks to avoid the tax."
+            },
+            {
+              "type": "recap",
+              "points": ["An incentive is a reward or penalty that influences choices.", "People respond to what is actually rewarded.", "Good policy asks: what is the easiest way to get this reward?"]
+            }
+          ],
+          "review": [
+            {
+              "id": "econ-1-4-r1", "kind": "choice",
+              "prompt": "Why did Hanoi’s 1902 rat-tail bounty backfire?",
+              "options": ["It paid for tails, so people cut tails off and let rats live", "The reward was too small", "Rats left the city"],
+              "answer": 0,
+              "explain": "It rewarded tails rather than fewer rats."
+            },
+            {
+              "id": "econ-1-4-r2", "kind": "choice",
+              "prompt": "A school rewards teachers only for higher test scores. What might go wrong?",
+              "options": ["Teaching to the test, ignoring skills that aren’t tested", "Nothing", "Scores fall"],
+              "answer": 0,
+              "explain": "People focus on exactly what is rewarded."
+            }
+          ]
+        },
+        {
+          "id": "econ-1-5",
+          "title": "Trade: Why Both Sides Win",
+          "goal": "Use comparative advantage to see why trade helps even when one side is better at everything.",
+          "steps": [
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Ana can bake bread and sew shirts faster than Ben. Can they both gain by trading?",
+              "options": ["No. Ana should just do everything herself.", "Yes. Each can specialise in what they give up least to make."],
+              "answer": 1,
+              "explain": "Surprisingly, yes. This is comparative advantage, one of the most important and least intuitive ideas in economics."
+            },
+            {
+              "type": "teach",
+              "title": "Absolute and comparative advantage",
+              "text": "In one hour, Ana can make 6 loaves or 3 shirts. Ben can make 2 loaves or 2 shirts.\n\nAna has an absolute advantage in both: she makes more of each. But look at opportunity cost. For Ana, 1 shirt costs 2 loaves she could have baked. For Ben, 1 shirt costs only 1 loaf.\n\nBen gives up less to make a shirt, so he has the comparative advantage in shirts. Ana has it in bread."
+            },
+            {
+              "type": "question", "kind": "number",
+              "prompt": "For Ana, how many loaves does making 1 shirt cost her? (She can make 6 loaves or 3 shirts in an hour.)",
+              "answer": 2,
+              "explain": "6 loaves ÷ 3 shirts = 2 loaves per shirt."
+            },
+            {
+              "type": "teach",
+              "title": "Why specialising helps",
+              "text": "If Ana bakes and Ben sews, then they trade at a price between their two costs, say 1.5 loaves per shirt, both come out ahead. Ana gets shirts for 1.5 loaves instead of the 2 it would cost her to make one. Ben gets 1.5 loaves for each shirt that cost him only 1 loaf to make.\n\nThe economist David Ricardo set out this idea in 1817, using England, Portugal, cloth and wine. It explains why countries, firms and people specialise and trade."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "A top surgeon types faster than her assistant. Why might she still hire the assistant to type her reports?",
+              "options": ["She is lazy", "Each hour she spends typing costs her an hour of much more valuable surgery", "Typing is unimportant"],
+              "answer": 1,
+              "explain": "Her opportunity cost of typing is huge, so even though she is faster, the assistant has the comparative advantage in typing."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Country A gives up 4 tonnes of wheat to make 1 car. Country B gives up 10 tonnes of wheat to make 1 car. Which country should specialise in cars?",
+              "options": ["Country A", "Country B", "Neither: they should each make both"],
+              "answer": 0,
+              "explain": "Country A gives up less wheat per car, so it has the comparative advantage in cars. Country B should focus on wheat."
+            },
+            {
+              "type": "recap",
+              "points": ["Absolute advantage: you can make more of something.", "Comparative advantage: you give up less (lower opportunity cost) to make it.", "Specialising by comparative advantage and trading lets both sides gain."]
+            }
+          ],
+          "review": [
+            {
+              "id": "econ-1-5-r1", "kind": "choice",
+              "prompt": "Comparative advantage is about having…",
+              "options": ["the most output", "the lowest opportunity cost", "the cheapest workers"],
+              "answer": 1,
+              "explain": "It compares what each side gives up, not raw output."
+            },
+            {
+              "id": "econ-1-5-r2", "kind": "number",
+              "prompt": "Ben can make 2 loaves or 2 shirts in an hour. How many loaves does 1 shirt cost him?",
+              "answer": 1,
+              "explain": "2 loaves ÷ 2 shirts = 1 loaf per shirt."
+            },
+            {
+              "id": "econ-1-5-r3", "kind": "choice",
+              "prompt": "Who first set out the theory of comparative advantage, in 1817?",
+              "options": ["Adam Smith", "David Ricardo", "Karl Marx"],
+              "answer": 1,
+              "explain": "David Ricardo, using England, Portugal, cloth and wine."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,316 @@
+{
+  "id": "science",
+  "title": "Science",
+  "tagline": "How the world works, from atoms to galaxies.",
+  "units": [
+    {
+      "id": "sci-u1",
+      "title": "What Everything Is Made Of",
+      "summary": "Atoms, what's inside them, how they join together, and why matter can be solid, liquid or gas.",
+      "lessons": [
+        {
+          "id": "sci-1-1",
+          "title": "Atoms: Unbelievably Small",
+          "goal": "Get a feel for how small atoms are, and how empty.",
+          "steps": [
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Roughly how many atoms would you need to line up side by side to cross one millimetre?",
+              "options": ["About 1,000", "About 100,000", "About 10 million", "About 10 billion"],
+              "answer": 2,
+              "explain": "An atom is about 0.1 nanometres across: a ten-millionth of a millimetre. So about 10 million atoms fit across the width of a pencil line."
+            },
+            {
+              "type": "teach",
+              "title": "Everything is atoms",
+              "text": "Every solid, liquid and gas around you, including you, is made of atoms. They are far too small to see even with an ordinary microscope.\n\nA single grain of sand holds tens of quintillions of atoms (a quintillion is a 1 followed by 18 zeros)."
+            },
+            {
+              "type": "teach",
+              "title": "Mostly empty space",
+              "text": "Almost all of an atom’s mass is packed into a tiny centre called the nucleus. The nucleus is about 100,000 times smaller across than the atom itself.\n\nIf an atom were the size of a football stadium, its nucleus would be about the size of a pea on the centre spot. The rest is a cloud of electrons, which have very little mass."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "If an atom is mostly empty space, why can’t your hand pass through a table?",
+              "options": ["The atoms in the table are packed solid", "The electrons in your hand and the table push each other away with electrical forces", "Gravity holds the table in place"],
+              "answer": 1,
+              "explain": "Electrons carry negative charge, and like charges repel. When you press on a table, the electron clouds of the two surfaces push back. What feels like “solid” is really electrical repulsion."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Where is almost all of an atom’s mass?",
+              "options": ["Spread evenly through the atom", "In the electron cloud", "In the nucleus"],
+              "answer": 2,
+              "explain": "More than 99.9% of an atom’s mass is in its nucleus."
+            },
+            {
+              "type": "recap",
+              "points": ["Everything is made of atoms, about 0.1 nanometres across.", "The nucleus is tiny but holds almost all the mass.", "Solids feel solid because electrons repel each other."]
+            }
+          ],
+          "review": [
+            {
+              "id": "sci-1-1-r1", "kind": "choice",
+              "prompt": "If an atom were a football stadium, its nucleus would be about the size of…",
+              "options": ["a car", "a football", "a pea"],
+              "answer": 2,
+              "explain": "The nucleus is about 100,000 times smaller across than the atom."
+            },
+            {
+              "id": "sci-1-1-r2", "kind": "choice",
+              "prompt": "Why does a table feel solid?",
+              "options": ["Its atoms have no space between them", "Electrons repel each other", "Its nuclei touch your hand"],
+              "answer": 1,
+              "explain": "Like charges repel, so electron clouds push back."
+            }
+          ]
+        },
+        {
+          "id": "sci-1-2",
+          "title": "Inside the Atom",
+          "goal": "Know the three particles in an atom, and what decides which element it is.",
+          "steps": [
+            {
+              "type": "teach",
+              "title": "Three particles",
+              "text": "Atoms are built from three kinds of particle:\n\n• Protons: positive charge, in the nucleus.\n• Neutrons: no charge, in the nucleus.\n• Electrons: negative charge, around the nucleus. Each is about 1,836 times lighter than a proton.\n\nIn a normal atom the number of electrons equals the number of protons, so the charges cancel out."
+            },
+            {
+              "type": "teach",
+              "title": "Protons decide the element",
+              "text": "The number of protons is called the atomic number, and it decides which element an atom is. Every atom with 1 proton is hydrogen. Every atom with 6 is carbon. Every atom with 79 is gold.\n\nChange the number of protons and you have a different element."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "An atom has 8 protons, 8 neutrons and 8 electrons. Another has 8 protons, 10 neutrons and 8 electrons. Are they the same element?",
+              "options": ["Yes, both have 8 protons", "No, they have different numbers of neutrons"],
+              "answer": 0,
+              "explain": "Both have 8 protons, so both are oxygen. Atoms of the same element with different numbers of neutrons are called isotopes."
+            },
+            {
+              "type": "teach",
+              "title": "Isotopes",
+              "text": "Isotopes are versions of an element with different numbers of neutrons. Carbon-12 has 6 protons and 6 neutrons. Carbon-14 has 6 protons and 8 neutrons.\n\nCarbon-14 is unstable and slowly decays at a known rate. Measuring how much is left in old bones or wood lets scientists date things up to about 50,000 years old: radiocarbon dating."
+            },
+            {
+              "type": "question", "kind": "number",
+              "prompt": "Carbon-14 has 6 protons. The 14 is the total number of protons plus neutrons. How many neutrons does it have?",
+              "answer": 8,
+              "explain": "14 − 6 = 8 neutrons."
+            },
+            {
+              "type": "question", "kind": "number",
+              "prompt": "A neutral atom has 11 protons. How many electrons does it have?",
+              "answer": 11,
+              "explain": "In a neutral atom, electrons equal protons. This atom is sodium."
+            },
+            {
+              "type": "recap",
+              "points": ["Protons (+) and neutrons (0) sit in the nucleus; electrons (−) surround it.", "The number of protons (atomic number) decides the element.", "Isotopes have the same protons but different neutrons."]
+            }
+          ],
+          "review": [
+            {
+              "id": "sci-1-2-r1", "kind": "choice",
+              "prompt": "What decides which element an atom is?",
+              "options": ["Number of neutrons", "Number of protons", "Number of electrons"],
+              "answer": 1,
+              "explain": "The number of protons, also called the atomic number."
+            },
+            {
+              "id": "sci-1-2-r2", "kind": "choice",
+              "prompt": "Carbon-12 and carbon-14 differ in their number of…",
+              "options": ["protons", "neutrons", "electrons"],
+              "answer": 1,
+              "explain": "They are isotopes: same protons, different neutrons."
+            },
+            {
+              "id": "sci-1-2-r3", "kind": "number",
+              "prompt": "An atom has 17 protons and a total of 35 protons and neutrons. How many neutrons?",
+              "answer": 18,
+              "explain": "35 − 17 = 18. This is chlorine-35."
+            }
+          ]
+        },
+        {
+          "id": "sci-1-3",
+          "title": "The Periodic Table",
+          "goal": "Understand how the periodic table is organised and why it predicts how elements behave.",
+          "steps": [
+            {
+              "type": "teach",
+              "title": "A table of all the elements",
+              "text": "There are 118 known elements, and about 94 of them occur naturally on Earth. The periodic table lists them in order of atomic number: 1 (hydrogen), 2 (helium), 3 (lithium) and so on.\n\nIts rows wrap around so that elements with similar behaviour line up in the same column, called a group."
+            },
+            {
+              "type": "teach",
+              "title": "Why columns behave alike",
+              "text": "How an element reacts depends mostly on its outermost electrons. Elements in the same column have the same number of outer electrons, so they behave in similar ways.\n\nThe far-right column holds the noble gases (helium, neon, argon…). Their outer electron shells are full, so they hardly react with anything. The far-left column holds metals like sodium and potassium, which have one outer electron they give away easily, so they react violently with water."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Why is helium, not hydrogen, used to fill party balloons and airships today?",
+              "options": ["Helium is lighter", "Helium is a noble gas and won’t burn; hydrogen is highly flammable", "Hydrogen is too expensive"],
+              "answer": 1,
+              "explain": "Hydrogen is actually lighter, but it burns explosively. The airship Hindenburg, filled with hydrogen, caught fire in 1937. Helium’s full outer shell makes it unreactive."
+            },
+            {
+              "type": "teach",
+              "title": "A table that made predictions",
+              "text": "In 1869 the Russian chemist Dmitri Mendeleev arranged the known elements this way and left gaps where the pattern said an element should exist. He predicted the properties of those missing elements. When gallium (1875) and germanium (1886) were discovered, they matched his predictions closely.\n\nA good scientific idea doesn’t just organise what we know; it predicts what we don’t."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Potassium is in the same column as sodium. What would you predict about potassium?",
+              "options": ["It is an unreactive gas", "It is a reactive metal that reacts strongly with water", "It behaves completely differently from sodium"],
+              "answer": 1,
+              "explain": "Same column, same number of outer electrons, similar behaviour. Potassium reacts even more violently with water than sodium."
+            },
+            {
+              "type": "recap",
+              "points": ["118 known elements, ordered by atomic number.", "Columns (groups) share outer-electron patterns, so they behave alike.", "Mendeleev’s table predicted elements before they were found."]
+            }
+          ],
+          "review": [
+            {
+              "id": "sci-1-3-r1", "kind": "choice",
+              "prompt": "Why are noble gases so unreactive?",
+              "options": ["They are very heavy", "Their outer electron shells are full", "They have no electrons"],
+              "answer": 1,
+              "explain": "A full outer shell means little tendency to gain, lose or share electrons."
+            },
+            {
+              "id": "sci-1-3-r2", "kind": "choice",
+              "prompt": "What made Mendeleev’s periodic table so convincing?",
+              "options": ["It was colourful", "It predicted undiscovered elements that were later found", "It listed every element"],
+              "answer": 1,
+              "explain": "Gallium and germanium matched his predictions."
+            }
+          ]
+        },
+        {
+          "id": "sci-1-4",
+          "title": "Molecules and Bonds",
+          "goal": "See how atoms join, and why compounds can be nothing like the elements that make them.",
+          "steps": [
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Sodium is a soft metal that explodes in water. Chlorine is a poisonous green gas. What do you get when they combine?",
+              "options": ["An even more dangerous poison", "Table salt", "A metal gas"],
+              "answer": 1,
+              "explain": "Sodium chloride is ordinary table salt. When elements combine into a compound, the result can have completely different properties from its ingredients."
+            },
+            {
+              "type": "teach",
+              "title": "Why atoms bond",
+              "text": "Atoms are most stable with a full outer shell of electrons. They get there by bonding with other atoms:\n\n• Ionic bonds: one atom gives electrons to another. Sodium gives its single outer electron to chlorine. Now sodium is positive and chlorine is negative, and opposite charges hold them together.\n• Covalent bonds: atoms share pairs of electrons. In water (H₂O), an oxygen atom shares electrons with two hydrogen atoms."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "In a water molecule, the oxygen atom and the hydrogen atoms…",
+              "options": ["swap protons", "share pairs of electrons (covalent bonds)", "are held by magnets"],
+              "answer": 1,
+              "explain": "Water is held together by covalent bonds: shared electron pairs."
+            },
+            {
+              "type": "teach",
+              "title": "Formulas",
+              "text": "A chemical formula tells you which atoms are in a molecule and how many. H₂O means 2 hydrogen atoms and 1 oxygen atom. CO₂ is 1 carbon and 2 oxygens. Glucose, C₆H₁₂O₆, is 6 carbons, 12 hydrogens and 6 oxygens."
+            },
+            {
+              "type": "question", "kind": "number",
+              "prompt": "How many atoms in total are in one molecule of glucose, C₆H₁₂O₆?",
+              "answer": 24,
+              "explain": "6 + 12 + 6 = 24 atoms."
+            },
+            {
+              "type": "recap",
+              "points": ["Atoms bond to reach a full outer shell of electrons.", "Ionic bonds transfer electrons; covalent bonds share them.", "A compound can behave nothing like its elements: toxic chlorine plus explosive sodium makes salt."]
+            }
+          ],
+          "review": [
+            {
+              "id": "sci-1-4-r1", "kind": "choice",
+              "prompt": "In table salt, sodium and chlorine are held together by…",
+              "options": ["shared electrons", "opposite charges after electrons are transferred", "gravity"],
+              "answer": 1,
+              "explain": "That is an ionic bond."
+            },
+            {
+              "id": "sci-1-4-r2", "kind": "number",
+              "prompt": "How many oxygen atoms are in one molecule of CO₂?",
+              "answer": 2,
+              "explain": "C O₂: one carbon, two oxygens."
+            }
+          ]
+        },
+        {
+          "id": "sci-1-5",
+          "title": "Solids, Liquids and Gases",
+          "goal": "Explain states of matter and temperature in terms of moving particles.",
+          "steps": [
+            {
+              "type": "teach",
+              "title": "Particles never stop moving",
+              "text": "The atoms and molecules in everything are always moving. Temperature is a measure of how fast, on average: the hotter something is, the faster its particles move.\n\n• In a solid, particles vibrate in fixed positions.\n• In a liquid, they slide past each other.\n• In a gas, they fly around freely, far apart."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "What happens to water molecules as you heat ice until it melts and then boils?",
+              "options": ["They get bigger", "They move faster, until they break free of each other", "They turn into different atoms"],
+              "answer": 1,
+              "explain": "The molecules stay the same size and stay H₂O. Heating makes them move faster until they overcome the forces holding them together."
+            },
+            {
+              "type": "teach",
+              "title": "As cold as it gets",
+              "text": "If you could slow particles down until their movement reached its minimum, you would reach absolute zero: −273.15 °C. Nothing can be colder.\n\nScientists use the Kelvin scale, which starts at absolute zero. 0 K is −273.15 °C, and water freezes at about 273 K."
+            },
+            {
+              "type": "question", "kind": "choice",
+              "prompt": "Most substances shrink when they freeze. Ice does the opposite and floats on water. Why does that matter for life?",
+              "options": ["It doesn’t matter", "Lakes freeze from the top down, so the ice insulates the water beneath and fish survive winter", "It makes ice melt faster"],
+              "answer": 1,
+              "explain": "Ice is about 9% less dense than liquid water, because its molecules lock into an open crystal pattern. If ice sank, lakes could freeze solid from the bottom up."
+            },
+            {
+              "type": "question", "kind": "number",
+              "prompt": "Room temperature is about 20 °C. Roughly what is that in kelvin? (Add 273.)",
+              "answer": 293,
+              "tolerance": 1,
+              "explain": "20 + 273 = 293 K."
+            },
+            {
+              "type": "recap",
+              "points": ["Temperature measures how fast particles move on average.", "Solid: vibrating in place. Liquid: sliding. Gas: flying freely.", "Absolute zero is −273.15 °C (0 K). Ice floats because it is less dense than water."]
+            }
+          ],
+          "review": [
+            {
+              "id": "sci-1-5-r1", "kind": "choice",
+              "prompt": "Temperature is a measure of…",
+              "options": ["how big particles are", "how fast particles move on average", "how many particles there are"],
+              "answer": 1,
+              "explain": "Hotter means faster-moving particles."
+            },
+            {
+              "id": "sci-1-5-r2", "kind": "choice",
+              "prompt": "What is absolute zero?",
+              "options": ["0 °C", "−100 °C", "−273.15 °C"],
+              "answer": 2,
+              "explain": "The coldest possible temperature: 0 kelvin."
+            },
+            {
+              "id": "sci-1-5-r3", "kind": "choice",
+              "prompt": "Why does ice float?",
+              "options": ["It contains air bubbles", "It is less dense than liquid water", "It is lighter than water molecules"],
+              "answer": 1,
+              "explain": "Its molecules form an open crystal, making it about 9% less dense."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
