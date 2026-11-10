@@ -23,5 +23,6 @@ content/history.json
 docs/lessons.md          readable export of every lesson
 tools/validate.py        checks the content files
 tools/export_md.py       regenerates docs/lessons.md
+tools/build_preview.py   builds a playable one-file preview of the lessons (template in preview/)
 assets/                  the owner's artwork, kept for possible reuse
 ```
