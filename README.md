@@ -31,3 +31,9 @@ python src/summarize_plumes.py   # plume counts by sector and country
 python src/download_carbon_mapper.py  # landfill plumes and sources (~13 MB)
 python src/summarize_landfills.py     # landfill summary and top sources
 ```
+
+## Milestone 3: rank landfill sources
+
+```bash
+python src/rank_sources.py   # top 10 landfill sources -> data/processed/
+```

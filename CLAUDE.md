@@ -45,7 +45,8 @@ The engine is leak type agnostic. Methane first, then oil slicks at sea, then in
   - `sources` gives `observation_date_count`, `detection_date_count` and `source_persistence` (detections / looks).
   - Sources are listed at two clustering radii (`_1000m_` and `_250m_` in `source_name`), so the same site appears twice. Use one radius.
   - Terms: https://carbonmapper.org/terms. Cite Carbon Mapper. Commercial use or redistribution needs their permission:
-    check before publishing the public scorecard.
+    Sharek knows the Carbon Mapper team; they have said this non-profit use is fine (Nov 2026).
+    Getting that in writing (an email) before the scorecard goes public is worth doing.
 
 ### Later
 - **SkyTruth Cerulean** (oil slicks at sea): free OGC API at api.cerulean.skytruth.org. Already attributes slicks to likely vessels / platforms; SkyTruth does not do response, so the gap is the same.
@@ -68,8 +69,10 @@ Not in v1: sending emails to anyone, user accounts, payments, mobile app.
 ## Milestones
 1. Set up the project (Python, virtual env, `.env` for API keys, git).
 2. Download data and print a summary. **Done**: UNEP MARS (`src/summarize_plumes.py`, oil and gas only) and Carbon Mapper landfills (`src/summarize_landfills.py`).
-3. Landfill sources: pick one clustering radius, rank by emission rate and persistence.
-   Each plume links to its source; keep plume IDs so every number traces back.
+3. Rank landfill sources. **Done** (`src/rank_sources.py`): 1000 m sources, 3+ looks, plume on 50%+ of looks,
+   shortlist 30 by Carbon Mapper's figure, then rank by our own numbers computed from plume records
+   (emissions summed per pass, then averaged across passes). Outputs `data/processed/top_sources.csv`
+   and `data/processed/top_source_plumes.csv` (every plume behind the top 10, with a link to each record).
 4. Write the repair brief generator (Claude API). Hand check 3 briefs for accuracy.
 5. Closure tracking: for each source, compare latest vs. earlier observations.
 6. Static scorecard page.
