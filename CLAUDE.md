@@ -31,6 +31,10 @@ The engine is leak type agnostic. Methane first, then oil slicks at sea, then in
   - Sources and plumes from the MARS alert system, downloadable as CSV / GeoJSON / JSON, plus an API.
   - Plume records include a `notified` field (whether an alert was sent), sector, country, satellite, lat/lon.
   - Licence: **CC BY-NC-SA 4.0, non commercial**. Fine for this project. Flag it if anything becomes commercial.
+  - The website blocks scripts (Cloudflare). We use UNEP-IMEO's own copy on Hugging Face instead:
+    https://huggingface.co/datasets/UNEP-IMEO/MARS-S2L (same licence; `src/download_mars.py`).
+    It is a research snapshot (images 2013 to 2024, last updated June 2025), Sentinel-2/Landsat only,
+    and almost entirely Oil and Gas. It contains no Waste sector plumes.
 - **Carbon Mapper**: https://carbonmapper.org/data
   - Methane and CO2 point source plumes from Tanager-1, EMIT and airborne surveys.
   - Free developer API (account required at the data portal). Organises data into `plumes` and `sources`.
