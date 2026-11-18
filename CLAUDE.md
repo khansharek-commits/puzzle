@@ -37,8 +37,15 @@ The engine is leak type agnostic. Methane first, then oil slicks at sea, then in
     and almost entirely Oil and Gas. It contains no Waste sector plumes.
 - **Carbon Mapper**: https://carbonmapper.org/data
   - Methane and CO2 point source plumes from Tanager-1, EMIT and airborne surveys.
-  - Free developer API (account required at the data portal). Organises data into `plumes` and `sources`.
-  - Commercial use or redistribution needs their permission.
+  - Organises data into `plumes` and `sources`. **This is the MVP's main data source** (`src/download_carbon_mapper.py`).
+  - The plume catalogue is public: no account or token needed. Endpoints used:
+    `https://api.carbonmapper.org/api/v1/catalog/plume-csv` and `.../sources-csv`,
+    filtered with `sectors=6A` (IPCC solid waste) and `plume_gas=CH4`.
+  - As of Nov 2026: 10,157 landfill plumes, 2,746 sources, 2016 to 2026, updated daily. Top countries: US, Brazil, India, Mexico.
+  - `sources` gives `observation_date_count`, `detection_date_count` and `source_persistence` (detections / looks).
+  - Sources are listed at two clustering radii (`_1000m_` and `_250m_` in `source_name`), so the same site appears twice. Use one radius.
+  - Terms: https://carbonmapper.org/terms. Cite Carbon Mapper. Commercial use or redistribution needs their permission:
+    check before publishing the public scorecard.
 
 ### Later
 - **SkyTruth Cerulean** (oil slicks at sea): free OGC API at api.cerulean.skytruth.org. Already attributes slicks to likely vessels / platforms; SkyTruth does not do response, so the gap is the same.
@@ -51,7 +58,7 @@ The engine is leak type agnostic. Methane first, then oil slicks at sea, then in
 ## MVP (version 1)
 Narrow and finishable:
 - Sector: **waste / landfills** (super emitters often come from cover cracks and gas collection valve failures, which are fixable; cities often lack capacity to act).
-- Pull Eye on Methane plumes, filter to waste sector.
+- Pull Carbon Mapper landfill (IPCC 6A) methane plumes and sources. (Eye on Methane's public data has no waste sector plumes.)
 - Group plumes into sources, rank by emission rate and persistence.
 - For the top 10 sources, generate a repair brief using the Claude API.
 - Output a simple static web page: a table of sources, their status, and the brief for each.
@@ -60,12 +67,13 @@ Not in v1: sending emails to anyone, user accounts, payments, mobile app.
 
 ## Milestones
 1. Set up the project (Python, virtual env, `.env` for API keys, git).
-2. Download one Eye on Methane dataset and load it. Print a summary: plume count by sector and country.
-3. Filter to landfills, group into sources, rank them.
+2. Download data and print a summary. **Done**: UNEP MARS (`src/summarize_plumes.py`, oil and gas only) and Carbon Mapper landfills (`src/summarize_landfills.py`).
+3. Landfill sources: pick one clustering radius, rank by emission rate and persistence.
+   Each plume links to its source; keep plume IDs so every number traces back.
 4. Write the repair brief generator (Claude API). Hand check 3 briefs for accuracy.
 5. Closure tracking: for each source, compare latest vs. earlier observations.
 6. Static scorecard page.
-7. Add Carbon Mapper as a second source.
+7. Add UNEP MARS as a second source (oil and gas; `notified` field shows the response gap).
 8. Add Cerulean oil slicks as the second leak type.
 
 ## Ground rules

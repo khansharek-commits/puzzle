@@ -18,6 +18,8 @@ python src/check_setup.py        # confirm everything works
 
 ## Data credits
 
+- Carbon Mapper (https://carbonmapper.org/data). See https://carbonmapper.org/terms.
+
 - UNEP IMEO Eye on Methane (https://methanedata.unep.org) and the UNEP IMEO MARS-S2L dataset
   (https://huggingface.co/datasets/UNEP-IMEO/MARS-S2L), CC BY-NC-SA 4.0.
 
@@ -26,4 +28,6 @@ python src/check_setup.py        # confirm everything works
 ```bash
 python src/download_mars.py      # downloads ~100 MB into data/raw/mars_s2l/
 python src/summarize_plumes.py   # plume counts by sector and country
+python src/download_carbon_mapper.py  # landfill plumes and sources (~13 MB)
+python src/summarize_landfills.py     # landfill summary and top sources
 ```
