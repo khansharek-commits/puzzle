@@ -1,0 +1,11 @@
+# Secrets: never commit
+.env
+
+# Python virtual environment and caches
+.venv/
+__pycache__/
+*.pyc
+
+# Downloaded data (large; re-download with the scripts)
+data/raw/*
+!data/raw/.gitkeep
