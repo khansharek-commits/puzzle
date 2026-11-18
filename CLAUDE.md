@@ -75,7 +75,11 @@ Not in v1: sending emails to anyone, user accounts, payments, mobile app.
    and `data/processed/top_source_plumes.csv` (every plume behind the top 10, with a link to each record).
 4. Write the repair brief generator (Claude API). Hand check 3 briefs for accuracy.
 5. Closure tracking: for each source, compare latest vs. earlier observations.
-6. Static scorecard page.
+6. Static scorecard page. **Started as a public layered map** (`docs/index.html`, built by `src/build_map_data.py`):
+   Leaflet (our own copy in `docs/vendor/`), satellite base map (EOX Sentinel-2 cloudless, CC BY-NC-SA) or OpenStreetMap,
+   layers for persistent landfill sites, top 10, latest plume images, and NASA GIBS carbon monoxide (AIRS),
+   nitrogen dioxide (TROPOMI) and methane background (AIRS). Published with GitHub Pages from `docs/`.
+   Still to add: site status (fixed / persisting / recurring) and repair briefs.
 7. Add UNEP MARS as a second source (oil and gas; `notified` field shows the response gap).
 8. Add Cerulean oil slicks as the second leak type.
 
@@ -95,3 +99,4 @@ Not in v1: sending emails to anyone, user accounts, payments, mobile app.
 - `src/` — Python code.
 - `data/raw/` — downloaded source files (not committed; re-download with the scripts).
 - `.env` — API keys (not committed). Copy `.env.example` to start.
+- `docs/` — the public map website (GitHub Pages). `docs/data/` and `docs/plumes/` are generated; rebuild with `src/build_map_data.py`.

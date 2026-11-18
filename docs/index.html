@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leak to Fix Map</title>
+<meta name="description" content="Landfill methane leaks seen from space, with carbon monoxide and air pollution layers.">
+
+<!-- Leaflet 1.9.4: a small, widely used library for zoomable web maps (our own copy, BSD licence). -->
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<script src="vendor/leaflet/leaflet.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&display=swap">
+
+<style>
+  /* Layout: full-screen map with a side panel (a bottom sheet on phones). */
+  :root {
+    --panel: #ffffff; --fg: #18211f; --muted: #5b6863; --line: #dde3e0;
+    --accent: #e0701f; --accent-dark: #8a3c08; --chip: #f2f4f3;
+    --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+    --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --panel: #1a2220; --fg: #e6ece9; --muted: #9aa8a2; --line: #2c3633; --chip: #232d2a; color-scheme: dark; }
+  }
+  html, body { height: 100%; margin: 0; }
+  body { font-family: var(--body); font-size: 14px; color: var(--fg); background: #0d1210; display: flex; }
+  #map { flex: 1; height: 100%; background: #0d1210; }
+
+  #panel { width: 340px; height: 100%; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--line);
+    padding: 20px 18px calc(24px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+    box-sizing: border-box; display: flex; flex-direction: column; gap: 22px; }
+  h1, h2 { font-family: var(--display); margin: 0; }
+  h1 { font-size: 1.45rem; font-weight: 600; }
+  h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  p { margin: 0; line-height: 1.5; }
+  .lede { color: var(--muted); margin-top: 6px; }
+  a { color: var(--accent); }
+
+  .layer { display: grid; grid-template-columns: 20px 1fr; gap: 2px 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .layer input { margin: 2px 0 0; accent-color: var(--accent); width: 16px; height: 16px; }
+  .layer label { font-weight: 600; cursor: pointer; }
+  .layer .note { grid-column: 2; color: var(--muted); font-size: 0.82rem; line-height: 1.4; }
+  .layer img.legend { grid-column: 2; max-width: 100%; margin-top: 4px; background: #fff; border-radius: 4px; }
+  .base { display: flex; gap: 6px; }
+  .base button { flex: 1; font: inherit; padding: 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--chip); color: var(--fg); cursor: pointer; }
+  .base button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  ol.top { list-style: none; margin: 0; padding: 0; }
+  ol.top li button { width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--line);
+    padding: 8px 0; display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: baseline; cursor: pointer; }
+  ol.top li button:hover .where { color: var(--accent); }
+  .rank { font-family: var(--display); font-weight: 600; color: var(--accent); }
+  .where { font-weight: 600; }
+  .where small { display: block; font-weight: 400; color: var(--muted); }
+  .kgh { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .credits { color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Site markers and popups */
+  .top-marker { background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 50%;
+    font: 600 12px/22px var(--display); text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .leaflet-popup-content { font-family: var(--body); font-size: 13px; line-height: 1.45; margin: 12px 14px; }
+  .leaflet-popup-content h3 { font-family: var(--display); font-size: 1rem; margin: 0 0 4px; }
+  .leaflet-popup-content table { border-collapse: collapse; margin: 6px 0; }
+  .leaflet-popup-content td { padding: 2px 10px 2px 0; vertical-align: top; }
+  .leaflet-popup-content td:first-child { color: #5b6863; }
+
+  #toggle { display: none; }
+
+  /* Phones: the panel becomes a sheet at the bottom that can be opened and closed. */
+  @media (max-width: 720px) {
+    body { flex-direction: column; }
+    #panel { order: 2; width: 100%; height: 45%; border-right: 0; border-top: 1px solid var(--line);
+      padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+    body.collapsed #panel { display: none; }
+    #toggle { display: block; position: absolute; z-index: 1000; right: max(10px, env(safe-area-inset-right, 0px));
+      top: calc(10px + env(safe-area-inset-top, 0px)); font: 600 13px var(--body); padding: 8px 12px; border-radius: 6px;
+      border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+  }
+</style>
+</head>
+<body>
+
+<aside id="panel">
+  <header>
+    <h1>Leak to Fix</h1>
+    <p class="lede">Landfills leaking methane, seen from space. Zoom in to see each site and its latest methane plume.</p>
+  </header>
+
+  <section>
+    <h2>Base map</h2>
+    <div class="base">
+      <button type="button" id="base-satellite" aria-pressed="true">Satellite</button>
+      <button type="button" id="base-streets" aria-pressed="false">Streets</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Layers</h2>
+    <div id="layer-list"></div>
+  </section>
+
+  <section>
+    <h2>Top 10 landfill leaks</h2>
+    <ol class="top" id="top-list"></ol>
+  </section>
+
+  <section class="credits">
+    Methane plumes and sites: <a href="https://carbonmapper.org/data">Carbon Mapper</a>.
+    Carbon monoxide, methane background and nitrogen dioxide: <a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a> (AIRS on Aqua; TROPOMI on ESA/Copernicus Sentinel-5P).
+    Satellite imagery: <a href="https://s2maps.eu">Sentinel-2 cloudless by EOX</a> (contains modified Copernicus Sentinel data 2023).
+    Streets: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.
+    Likely causes are possibilities, not findings. Data may lag real conditions.
+  </section>
+</aside>
+
+<button id="toggle" type="button">Hide panel</button>
+<div id="map"></div>
+
+<script>
+// ---------- 1. The map itself ----------
+const map = L.map("map", { worldCopyJump: true, zoomControl: true }).setView([15, 10], 2);
+
+// ---------- 2. Base maps (only one shows at a time) ----------
+const baseMaps = {
+  satellite: L.tileLayer(
+    "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/g/{z}/{y}/{x}.jpg",
+    { maxZoom: 18, maxNativeZoom: 15, attribution: "Sentinel-2 cloudless by EOX (Copernicus Sentinel data 2023)" }),
+  streets: L.tileLayer(
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    { maxZoom: 18, attribution: "&copy; OpenStreetMap contributors" }),
+};
+// Place names drawn on top of the satellite view.
+const placeNames = L.tileLayer(
+  "https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png",
+  { maxZoom: 18, maxNativeZoom: 15, attribution: "Labels: EOX, OpenStreetMap contributors" });
+
+function showBase(name) {
+  for (const [key, layer] of Object.entries(baseMaps)) {
+    if (key === name) layer.addTo(map); else map.removeLayer(layer);
+    document.getElementById("base-" + key).setAttribute("aria-pressed", key === name);
+  }
+  if (name === "satellite") placeNames.addTo(map); else map.removeLayer(placeNames);
+  // Keep base maps underneath everything else.
+  baseMaps[name].bringToBack();
+}
+document.getElementById("base-satellite").onclick = () => showBase("satellite");
+document.getElementById("base-streets").onclick = () => showBase("streets");
+showBase("satellite");
+
+// ---------- 3. NASA pollution layers (map tiles from NASA GIBS) ----------
+function nasaLayer(id, date) {
+  return L.tileLayer(
+    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${id}/default/${date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png`,
+    { maxNativeZoom: 6, maxZoom: 18, opacity: 0.6, attribution: "NASA GIBS" });
+}
+
+// ---------- 4. Landfill layers (our own data files) ----------
+const sitesLayer = L.layerGroup();   // all persistent landfill sites
+const topLayer = L.layerGroup();     // the top 10, numbered
+const plumeLayer = L.layerGroup();   // latest plume images for the top 10
+
+// Format a number like 8,411. Missing values show as "not estimated".
+const fmt = n => n == null ? "not estimated" : Math.round(n).toLocaleString("en");
+
+function popupHtml(p) {
+  const where = [p.place, p.region, p.country].filter(Boolean).join(", ");
+  let rows = `<tr><td>Seen leaking</td><td>${p.detections} of ${p.looks} looks</td></tr>
+              <tr><td>Carbon Mapper estimate</td><td>${fmt(p.cm_emission_kg_h)}${p.cm_emission_kg_h == null ? "" : " kg/h"}</td></tr>`;
+  if (p.rank) {
+    rows += `<tr><td>Our average per pass</td><td>${fmt(p.mean_emission_kg_h)} kg/h</td></tr>
+             <tr><td>Latest pass</td><td>${fmt(p.latest_emission_kg_h)} kg/h on ${p.latest_date}</td></tr>
+             <tr><td>First / last seen</td><td>${p.first_seen} / ${p.last_seen}</td></tr>`;
+  }
+  return `<h3>${p.rank ? "#" + p.rank + " " : ""}${where || "Landfill site"}</h3>
+    <table>${rows}</table>
+    <a href="${p.records_link}" target="_blank" rel="noopener">All plume records for this site</a>`;
+}
+
+async function loadLandfills() {
+  const sites = await (await fetch("data/sites.geojson")).json();
+  const top = [];
+
+  for (const f of sites.features) {
+    const p = f.properties;
+    const [lon, lat] = f.geometry.coordinates;
+    // Bigger leaks get bigger circles (square root keeps big ones from swamping the map).
+    const radius = 3 + Math.sqrt(p.cm_emission_kg_h || 0) / 8;
+    L.circleMarker([lat, lon], { radius, color: "#ffffff", weight: 1, fillColor: "#e0701f", fillOpacity: 0.75 })
+      .bindPopup(popupHtml(p)).addTo(sitesLayer);
+    if (p.rank) top.push({ p, lat, lon });
+  }
+
+  top.sort((a, b) => a.p.rank - b.p.rank);
+  const list = document.getElementById("top-list");
+  for (const { p, lat, lon } of top) {
+    const icon = L.divIcon({ className: "top-marker", html: p.rank, iconSize: [26, 26] });
+    const marker = L.marker([lat, lon], { icon, zIndexOffset: 1000 }).bindPopup(popupHtml(p)).addTo(topLayer);
+
+    const li = document.createElement("li");
+    li.innerHTML = `<button type="button"><span class="rank">${p.rank}</span>
+      <span class="where">${p.place}<small>${p.country}</small></span>
+      <span class="kgh">${fmt(p.mean_emission_kg_h)} kg/h</span></button>`;
+    li.querySelector("button").onclick = () => {
+      if (window.innerWidth <= 720) document.body.classList.add("collapsed");
+      map.invalidateSize();
+      map.flyTo([lat, lon], 13, { duration: 2 });
+      map.once("moveend", () => marker.openPopup());
+    };
+    list.appendChild(li);
+  }
+
+  const plumes = await (await fetch("data/plumes.json")).json();
+  for (const pl of plumes) {
+    L.imageOverlay(pl.image, pl.bounds, { opacity: 0.85, interactive: true })
+      .bindPopup(`<h3>Methane plume</h3><table>
+        <tr><td>Plume ID</td><td>${pl.plume_id}</td></tr>
+        <tr><td>Date</td><td>${pl.date}</td></tr>
+        <tr><td>Emission</td><td>${fmt(pl.emission_kg_h)}${pl.emission_kg_h == null ? "" : " kg/h"}</td></tr></table>
+        <a href="${pl.record_link}" target="_blank" rel="noopener">Carbon Mapper record</a>`)
+      .addTo(plumeLayer);
+  }
+}
+
+// ---------- 5. The layer list in the side panel ----------
+const LEGENDS = "https://gibs.earthdata.nasa.gov/legends/";
+const layers = [
+  { id: "sites", label: "Landfill methane sites", on: true, layer: sitesLayer,
+    note: "582 landfills seen leaking on at least half of 3+ looks. Bigger circle, bigger leak. Click one for numbers." },
+  { id: "top", label: "Top 10 landfill leaks", on: true, layer: topLayer,
+    note: "Ranked by average methane per satellite pass." },
+  { id: "plumes", label: "Latest methane plumes", on: true, layer: plumeLayer,
+    note: "The most recent plume images at the top 10 sites. Zoom in close to see them." },
+  { id: "co", label: "Carbon monoxide", on: false,
+    layer: nasaLayer("AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Monthly_Day", "2026-09-01"),
+    note: "Monthly average, September 2026, about 5 km up (NASA AIRS). Comes mostly from fires, traffic and industry.",
+    legend: LEGENDS + "AIRS_Carbon_Monoxide_Volume_Mixing_Ratio_H.svg" },
+  { id: "no2", label: "Air pollution (nitrogen dioxide)", on: false,
+    layer: nasaLayer("TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column", "2026-11-13"),
+    note: "One day's satellite passes, 13 November 2026 (TROPOMI). Gaps are clouds or areas not covered that day.",
+    legend: LEGENDS + "OMI_Nitrogen_Dioxide_Tropo_Column_H.svg" },
+  { id: "ch4bg", label: "Methane background", on: false,
+    layer: nasaLayer("AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Monthly_Day", "2026-09-01"),
+    note: "Monthly average, September 2026, about 7 km up (NASA AIRS). Shows the regional picture, not single leaks.",
+    legend: LEGENDS + "AIRS_Methane_Volume_Mixing_Ratio_H.svg" },
+];
+
+const layerList = document.getElementById("layer-list");
+for (const l of layers) {
+  const div = document.createElement("div");
+  div.className = "layer";
+  div.innerHTML = `<input type="checkbox" id="layer-${l.id}" ${l.on ? "checked" : ""}>
+    <label for="layer-${l.id}">${l.label}</label>
+    <p class="note">${l.note}</p>
+    ${l.legend ? `<img class="legend" src="${l.legend}" alt="Colour key for ${l.label}" hidden>` : ""}`;
+  const box = div.querySelector("input");
+  const legend = div.querySelector("img");
+  const apply = () => {
+    if (box.checked) l.layer.addTo(map); else map.removeLayer(l.layer);
+    if (legend) legend.hidden = !box.checked;
+  };
+  box.onchange = apply;
+  apply();
+  layerList.appendChild(div);
+}
+
+// ---------- 6. Phone panel toggle ----------
+const toggle = document.getElementById("toggle");
+toggle.onclick = () => {
+  document.body.classList.toggle("collapsed");
+  toggle.textContent = document.body.classList.contains("collapsed") ? "Show panel" : "Hide panel";
+  map.invalidateSize();
+};
+
+loadLandfills();
+</script>
+</body>
+</html>

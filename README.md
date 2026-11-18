@@ -37,3 +37,16 @@ python src/summarize_landfills.py     # landfill summary and top sources
 ```bash
 python src/rank_sources.py   # top 10 landfill sources -> data/processed/
 ```
+
+## The map
+
+An interactive map of landfill methane leaks, with carbon monoxide, air pollution (nitrogen dioxide)
+and methane background layers. It lives in `docs/` and is published with GitHub Pages.
+
+```bash
+python src/build_map_data.py            # rebuild docs/data and docs/plumes
+cd docs && python3 -m http.server 8000  # then open http://localhost:8000
+```
+
+Map credits: Sentinel-2 cloudless by EOX (contains modified Copernicus Sentinel data 2023),
+OpenStreetMap contributors, NASA GIBS (AIRS, TROPOMI), Leaflet.

@@ -1,0 +1,488 @@
+[
+ {
+  "plume_id": "tan20260925t153214c72s4001-A",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": 7104.3,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-A"
+ },
+ {
+  "plume_id": "tan20260925t153214c72s4001-B",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-B.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-B"
+ },
+ {
+  "plume_id": "tan20260925t153214c72s4001-C",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-C.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-C"
+ },
+ {
+  "plume_id": "tan20260925t153214c72s4001-D",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-D.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-D"
+ },
+ {
+  "plume_id": "tan20260925t153214c72s4001-F",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-F.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-F"
+ },
+ {
+  "plume_id": "tan20260925t153214c72s4001-G",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-G.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-G"
+ },
+ {
+  "plume_id": "tan20260925t153214c72s4001-H",
+  "source_name": "CH4_6A_1000m_-58.61963_-34.53135",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -34.551728264201195,
+    -58.670549350131104
+   ],
+   [
+    -34.40545367164224,
+    -58.49277689574179
+   ]
+  ],
+  "image": "plumes/tan20260925t153214c72s4001-H.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t153214c72s4001-H"
+ },
+ {
+  "plume_id": "tan20261001t063832c84s4001-A",
+  "source_name": "CH4_6A_1000m_78.59162_17.52131",
+  "date": "2026-10-01",
+  "emission_kg_h": 1185.6,
+  "bounds": [
+   [
+    17.452872159507415,
+    78.5090159031363
+   ],
+   [
+    17.54875949647117,
+    78.60984024858517
+   ]
+  ],
+  "image": "plumes/tan20261001t063832c84s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20261001t063832c84s4001-A"
+ },
+ {
+  "plume_id": "tan20261001t063832c84s4001-B",
+  "source_name": "CH4_6A_1000m_78.59162_17.52131",
+  "date": "2026-10-01",
+  "emission_kg_h": 1461.4,
+  "bounds": [
+   [
+    17.45503304468356,
+    78.51184898397393
+   ],
+   [
+    17.548217577734782,
+    78.60927335735859
+   ]
+  ],
+  "image": "plumes/tan20261001t063832c84s4001-B.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20261001t063832c84s4001-B"
+ },
+ {
+  "plume_id": "tan20261001t063832c84s4001-D",
+  "source_name": "CH4_6A_1000m_78.59162_17.52131",
+  "date": "2026-10-01",
+  "emission_kg_h": 2548.7,
+  "bounds": [
+   [
+    17.452872159507415,
+    78.5090159031363
+   ],
+   [
+    17.54875949647117,
+    78.60984024858517
+   ]
+  ],
+  "image": "plumes/tan20261001t063832c84s4001-D.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20261001t063832c84s4001-D"
+ },
+ {
+  "plume_id": "tan20261001t063832c84s4001-E",
+  "source_name": "CH4_6A_1000m_78.59162_17.52131",
+  "date": "2026-10-01",
+  "emission_kg_h": 1099.1,
+  "bounds": [
+   [
+    17.452872159507415,
+    78.5090159031363
+   ],
+   [
+    17.54875949647117,
+    78.60984024858517
+   ]
+  ],
+  "image": "plumes/tan20261001t063832c84s4001-E.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20261001t063832c84s4001-E"
+ },
+ {
+  "plume_id": "tan20260911t043234c99s4001-A",
+  "source_name": "CH4_6A_1000m_106.99756_-6.34878",
+  "date": "2026-09-11",
+  "emission_kg_h": 4437.6,
+  "bounds": [
+   [
+    -6.389997038422141,
+    106.91895648051141
+   ],
+   [
+    -6.299167728117581,
+    107.0103455339073
+   ]
+  ],
+  "image": "plumes/tan20260911t043234c99s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260911t043234c99s4001-A"
+ },
+ {
+  "plume_id": "tan20260911t043234c99s4001-B",
+  "source_name": "CH4_6A_1000m_106.99756_-6.34878",
+  "date": "2026-09-11",
+  "emission_kg_h": 267.3,
+  "bounds": [
+   [
+    -6.389997038422141,
+    106.91895648051141
+   ],
+   [
+    -6.299167728117581,
+    107.0103455339073
+   ]
+  ],
+  "image": "plumes/tan20260911t043234c99s4001-B.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260911t043234c99s4001-B"
+ },
+ {
+  "plume_id": "tan20260911t043234c99s4001-D",
+  "source_name": "CH4_6A_1000m_106.99756_-6.34878",
+  "date": "2026-09-11",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    -6.36926579820197,
+    106.96188345979354
+   ],
+   [
+    -6.324932970226704,
+    107.0062177174323
+   ]
+  ],
+  "image": "plumes/tan20260911t043234c99s4001-D.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260911t043234c99s4001-D"
+ },
+ {
+  "plume_id": "tan20260426t101019c46s4001-A",
+  "source_name": "CH4_6A_1000m_28.14745_41.21564",
+  "date": "2026-04-26",
+  "emission_kg_h": 5450.6,
+  "bounds": [
+   [
+    41.20527105374651,
+    28.134454843025402
+   ],
+   [
+    41.25085191275905,
+    28.19470164772191
+   ]
+  ],
+  "image": "plumes/tan20260426t101019c46s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260426t101019c46s4001-A"
+ },
+ {
+  "plume_id": "tan20261008t050717c33s4001-A",
+  "source_name": "CH4_6A_1000m_101.35860_3.18809",
+  "date": "2026-10-08",
+  "emission_kg_h": 4913.2,
+  "bounds": [
+   [
+    3.16460171012731,
+    101.35068730099269
+   ],
+   [
+    3.2037921288408975,
+    101.38966762255427
+   ]
+  ],
+  "image": "plumes/tan20261008t050717c33s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20261008t050717c33s4001-A"
+ },
+ {
+  "plume_id": "tan20260403t070039c37s4001-K",
+  "source_name": "CH4_6A_1000m_72.95391_19.12363",
+  "date": "2026-04-03",
+  "emission_kg_h": 3314.7,
+  "bounds": [
+   [
+    19.111521401970016,
+    72.93618599182363
+   ],
+   [
+    19.142317741697113,
+    72.96878178024826
+   ]
+  ],
+  "image": "plumes/tan20260403t070039c37s4001-K.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260403t070039c37s4001-K"
+ },
+ {
+  "plume_id": "tan20260403t070039c37s4001-L",
+  "source_name": "CH4_6A_1000m_72.95391_19.12363",
+  "date": "2026-04-03",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    19.111521401970016,
+    72.93618599182363
+   ],
+   [
+    19.142317741697113,
+    72.96878178024826
+   ]
+  ],
+  "image": "plumes/tan20260403t070039c37s4001-L.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260403t070039c37s4001-L"
+ },
+ {
+  "plume_id": "tan20260925t182301c48s4001-A",
+  "source_name": "CH4_6A_1000m_-95.71526_29.39604",
+  "date": "2026-09-25",
+  "emission_kg_h": 4230.2,
+  "bounds": [
+   [
+    29.379378904936967,
+    -95.73760553665122
+   ],
+   [
+    29.410676963316533,
+    -95.70199231432096
+   ]
+  ],
+  "image": "plumes/tan20260925t182301c48s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t182301c48s4001-A"
+ },
+ {
+  "plume_id": "tan20260925t182301c48s4001-B",
+  "source_name": "CH4_6A_1000m_-95.71526_29.39604",
+  "date": "2026-09-25",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    29.379378904936967,
+    -95.73760553665122
+   ],
+   [
+    29.410676963316533,
+    -95.70199231432096
+   ]
+  ],
+  "image": "plumes/tan20260925t182301c48s4001-B.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260925t182301c48s4001-B"
+ },
+ {
+  "plume_id": "tan20260321t170753c09s4001-A",
+  "source_name": "CH4_6A_1000m_-80.68211_27.34072",
+  "date": "2026-03-21",
+  "emission_kg_h": 3604.8,
+  "bounds": [
+   [
+    27.316158340180046,
+    -80.70455815356432
+   ],
+   [
+    27.346953171037615,
+    -80.67019759382895
+   ]
+  ],
+  "image": "plumes/tan20260321t170753c09s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260321t170753c09s4001-A"
+ },
+ {
+  "plume_id": "tan20251115t180959c03s4001-A",
+  "source_name": "CH4_6A_1000m_-98.80360_19.32367",
+  "date": "2025-11-15",
+  "emission_kg_h": 3893.3,
+  "bounds": [
+   [
+    19.302137797685553,
+    -98.81429771262245
+   ],
+   [
+    19.33268327230883,
+    -98.7819299477348
+   ]
+  ],
+  "image": "plumes/tan20251115t180959c03s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20251115t180959c03s4001-A"
+ },
+ {
+  "plume_id": "tan20251115t180959c03s4001-F",
+  "source_name": "CH4_6A_1000m_-98.80360_19.32367",
+  "date": "2025-11-15",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    19.303220590363903,
+    -98.81343981243337
+   ],
+   [
+    19.333495748612265,
+    -98.78135830453522
+   ]
+  ],
+  "image": "plumes/tan20251115t180959c03s4001-F.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20251115t180959c03s4001-F"
+ },
+ {
+  "plume_id": "tan20260922t123503c41s4001-A",
+  "source_name": "CH4_6A_1000m_-7.54014_33.47802",
+  "date": "2026-09-22",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    33.32390893635619,
+    -7.643462378196279
+   ],
+   [
+    33.49719701617321,
+    -7.43619191648711
+   ]
+  ],
+  "image": "plumes/tan20260922t123503c41s4001-A.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260922t123503c41s4001-A"
+ },
+ {
+  "plume_id": "tan20260922t123503c41s4001-B",
+  "source_name": "CH4_6A_1000m_-7.54014_33.47802",
+  "date": "2026-09-22",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    33.3260541825915,
+    -7.642139521800782
+   ],
+   [
+    33.49691230954515,
+    -7.437777883254438
+   ]
+  ],
+  "image": "plumes/tan20260922t123503c41s4001-B.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260922t123503c41s4001-B"
+ },
+ {
+  "plume_id": "tan20260922t123503c41s4001-C",
+  "source_name": "CH4_6A_1000m_-7.54014_33.47802",
+  "date": "2026-09-22",
+  "emission_kg_h": 7481.4,
+  "bounds": [
+   [
+    33.327933220709916,
+    -7.641147378270375
+   ],
+   [
+    33.49663201499338,
+    -7.438724008275449
+   ]
+  ],
+  "image": "plumes/tan20260922t123503c41s4001-C.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260922t123503c41s4001-C"
+ },
+ {
+  "plume_id": "tan20260922t123503c41s4001-D",
+  "source_name": "CH4_6A_1000m_-7.54014_33.47802",
+  "date": "2026-09-22",
+  "emission_kg_h": null,
+  "bounds": [
+   [
+    33.32659046927392,
+    -7.641808811442583
+   ],
+   [
+    33.496908764003244,
+    -7.438093258431344
+   ]
+  ],
+  "image": "plumes/tan20260922t123503c41s4001-D.png",
+  "record_link": "https://api.carbonmapper.org/api/v1/catalog/plumes/annotated?plume_names=tan20260922t123503c41s4001-D"
+ }
+]
